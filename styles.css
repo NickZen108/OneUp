@@ -474,3 +474,167 @@ h1 {
 .secondary-button:active {
   transform: translateY(0.12rem) scale(0.99);
 }
+
+.world.level-1 {
+  background:
+    radial-gradient(circle at 30% 72%, rgba(255, 255, 255, var(--beauty)), transparent 4rem),
+    linear-gradient(#92d894, #66bd78);
+}
+
+.world.level-2 {
+  background:
+    radial-gradient(circle at 22% 72%, rgba(255, 245, 188, 0.28), transparent 4.8rem),
+    radial-gradient(circle at 68% 63%, rgba(255, 255, 255, var(--beauty)), transparent 4.5rem),
+    linear-gradient(#8ee19a, #58bf77);
+}
+
+.world.level-3,
+.world.level-4,
+.world.level-5 {
+  background:
+    radial-gradient(circle at 22% 72%, rgba(255, 236, 138, 0.35), transparent 5rem),
+    radial-gradient(circle at 72% 65%, rgba(255, 255, 255, var(--beauty)), transparent 5.4rem),
+    linear-gradient(#7fe39d, #45b96f);
+}
+
+.world.level-5::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 232, 147, 0.45), transparent 7rem);
+  pointer-events: none;
+}
+
+.bench {
+  position: absolute;
+  left: 9%;
+  bottom: 4.2rem;
+  width: 4.6rem;
+  height: 1.8rem;
+  border-top: 0.35rem solid #b8794a;
+  border-bottom: 0.35rem solid #b8794a;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.bench::before,
+.bench::after {
+  content: "";
+  position: absolute;
+  bottom: -1rem;
+  width: 0.35rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: #8a5a3d;
+}
+
+.bench::before { left: 0.55rem; }
+.bench::after { right: 0.55rem; }
+
+.person-helper,
+.animal-friend,
+.butterfly,
+.heart {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.person-helper {
+  left: 56%;
+  bottom: 3.25rem;
+  background: #ffb58a;
+  transform: translateY(0.6rem) scale(0.92);
+}
+
+.animal-friend {
+  right: 9%;
+  bottom: 3.2rem;
+  width: 2.9rem;
+  background: #f4f0ff;
+  transform: translateY(0.5rem) scale(0.9);
+}
+
+.butterfly,
+.heart {
+  position: absolute;
+  z-index: 2;
+}
+
+.butterfly {
+  bottom: 7.8rem;
+  font-size: 1.25rem;
+  animation: flutter 2.8s ease-in-out infinite;
+}
+
+.butterfly-one { left: 22%; }
+.butterfly-two { right: 20%; animation-delay: 0.8s; }
+
+.heart {
+  bottom: 7rem;
+  color: rgba(255, 108, 168, 0.82);
+  font-size: 1.1rem;
+  animation: kindness-pulse 1.8s ease-in-out infinite;
+}
+
+.heart-one { left: 50%; }
+.heart-two { right: 32%; animation-delay: 0.5s; }
+
+.flower-four { left: 34%; color: #ff7f7f; }
+.flower-five { right: 24%; color: #b8a4ff; }
+
+.world.level-2 .bench,
+.world.level-3 .bench,
+.world.level-4 .bench,
+.world.level-5 .bench,
+.world.level-4 .person-helper,
+.world.level-5 .person-helper,
+.world.level-4 .animal-friend,
+.world.level-5 .animal-friend,
+.world.level-4 .heart,
+.world.level-5 .heart,
+.world.level-3 .butterfly,
+.world.level-4 .butterfly,
+.world.level-5 .butterfly {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.world.level-1 .flower-four,
+.world.level-1 .flower-five,
+.world.level-2 .flower-five {
+  opacity: 0;
+}
+
+.world.level-3 .person,
+.world.level-3 .animal,
+.world.level-5 .person,
+.world.level-5 .animal {
+  animation: happy-bounce 2.4s ease-in-out infinite;
+}
+
+.world.level-4 .person,
+.world.level-4 .animal {
+  animation: caring-sway 3s ease-in-out infinite;
+}
+
+@keyframes happy-bounce {
+  0%, 100% { transform: translateY(-0.35rem) scale(1.05); }
+  50% { transform: translateY(-0.75rem) scale(1.08); }
+}
+
+@keyframes caring-sway {
+  0%, 100% { transform: translateY(-0.45rem) rotate(-1deg) scale(1.08); }
+  50% { transform: translateY(-0.55rem) rotate(1deg) scale(1.08); }
+}
+
+@keyframes flutter {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-0.45rem) rotate(10deg); }
+}
+
+@keyframes kindness-pulse {
+  0%, 100% { transform: scale(0.9); }
+  50% { transform: scale(1.18); }
+}
