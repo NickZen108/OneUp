@@ -290,8 +290,8 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   assert.match(app.breathingPhase.textContent, /Box breathing/);
   app.tick(16);
 
-  assert.equal(app.points.textContent, 10);
-  assert.match(app.breathingPhase.textContent, /gennemførte/);
+  assert.equal(app.points.textContent, 5);
+  assert.match(app.breathingPhase.textContent, /Box breathing/);
 }
 
 {
@@ -303,7 +303,7 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   assert.match(app.breathingPhase.textContent, /4-7-8 breathing/);
   app.tick(19);
 
-  assert.equal(app.points.textContent, 10);
+  assert.equal(app.points.textContent, 5);
 }
 
 {
@@ -407,7 +407,7 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   const history = JSON.parse(app.storage.get('oneupDailyHistory'));
   assert.equal(history['2026-07-12'].boxBreathingCount, 1);
   assert.equal(history['2026-07-12'].breathing478Count, 1);
-  assert.equal(history['2026-07-12'].totalPoints, 20);
+  assert.equal(history['2026-07-12'].totalPoints, 10);
   assert.equal(app.developmentBreathingToday.textContent, 2);
 }
 
@@ -443,8 +443,8 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   const reopenedSession = loadApp({ existingStorage: firstSession.storage });
   assert.equal(reopenedSession.developmentStepsToday.textContent, 1100);
   assert.equal(reopenedSession.developmentBreathingToday.textContent, 1);
-  assert.equal(reopenedSession.developmentPointsToday.textContent, 21);
-  assert.equal(reopenedSession.developmentTotalPoints.textContent, 28);
+  assert.equal(reopenedSession.developmentPointsToday.textContent, 16);
+  assert.equal(reopenedSession.developmentTotalPoints.textContent, 23);
 }
 
 {
