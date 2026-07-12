@@ -104,6 +104,49 @@
         </article>
       </section>
 
+      <section class="development-card" aria-labelledby="development-title">
+        <div>
+          <p class="eyebrow">Din daglige rytme</p>
+          <h2 id="development-title">Min udvikling</h2>
+          <p>Her kan du se, hvordan dagens små valg bygger videre på din udvikling.</p>
+        </div>
+
+        <dl class="today-status" aria-live="polite">
+          <div>
+            <dt>Skridt i dag</dt>
+            <dd id="development-steps-today">0</dd>
+          </div>
+          <div>
+            <dt>Åndedrætsøvelser i dag</dt>
+            <dd id="development-breathing-today">0</dd>
+          </div>
+          <div>
+            <dt>Point optjent i dag</dt>
+            <dd id="development-points-today">0</dd>
+          </div>
+          <div>
+            <dt>Samlede point</dt>
+            <dd id="development-total-points">0</dd>
+          </div>
+        </dl>
+
+        <div class="streak-row" aria-live="polite">
+          <div>
+            <span>Nuværende streak</span>
+            <strong id="current-streak">0 dage</strong>
+          </div>
+          <div>
+            <span>Længste streak</span>
+            <strong id="longest-streak">0 dage</strong>
+          </div>
+        </div>
+
+        <div>
+          <h3>Seneste 7 dage</h3>
+          <ul class="history-list" id="history-list" aria-live="polite"></ul>
+        </div>
+      </section>
+
       <button type="button" class="reset-button" id="reset-points">Nulstil mine point</button>
     </main>
 
