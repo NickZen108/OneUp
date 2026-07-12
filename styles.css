@@ -849,3 +849,94 @@ h1 {
 .voice-note { display: inline-flex; justify-content: center; gap: 0.4rem; font-weight: 800; }
 
 @keyframes gentle-zoom { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+
+.app-shell { padding-bottom: 6.5rem; }
+.app-section[hidden] { display: none !important; }
+.mission-page,
+.profile-page,
+.soft-panel {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.2rem;
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+}
+.mission-list { display: grid; gap: 1rem; }
+.mission-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 0.16rem solid rgba(49, 64, 79, 0.1);
+  border-radius: 1.3rem;
+  background: rgba(255, 247, 232, 0.78);
+}
+.mission-card.active { border-color: var(--coral); box-shadow: 0 0.6rem 1rem rgba(255, 127, 127, 0.14); }
+.mission-card h3 { margin: 0; }
+.mission-card p { margin: 0; line-height: 1.45; }
+.mission-card progress { width: 100%; height: 0.9rem; accent-color: var(--green); }
+.mission-card button,
+.quick-buttons label {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1rem;
+  background: #fff0ba;
+  color: var(--text);
+  font-weight: 900;
+  cursor: pointer;
+}
+.info-box { padding: 1rem; border-radius: 1rem; background: rgba(168, 230, 207, 0.32); font-weight: 800; }
+.profile-form { display: grid; gap: 0.8rem; }
+.profile-form label,
+.soft-panel label { display: grid; gap: 0.35rem; font-weight: 900; }
+.profile-form input,
+.profile-form select,
+.soft-panel select {
+  width: 100%;
+  border: 0.16rem solid rgba(49, 64, 79, 0.16);
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+}
+.quick-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0.7rem;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.25rem;
+  width: min(calc(100% - 1rem), 31rem);
+  padding: 0.45rem;
+  border: 0.12rem solid rgba(255, 255, 255, 0.8);
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+}
+.bottom-nav button {
+  display: grid;
+  place-items: center;
+  gap: 0.1rem;
+  border: 0;
+  border-radius: 1rem;
+  padding: 0.45rem 0.15rem;
+  color: #6f6570;
+  background: transparent;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.bottom-nav span { font-size: 0.68rem; }
+.bottom-nav button.active { color: var(--text); background: #fff0ba; box-shadow: inset 0 0 0 0.12rem rgba(255, 225, 122, 0.8); }
+@media (min-width: 42rem) {
+  .mission-page, .profile-page { grid-column: 1 / -1; margin-top: 0; }
+  .bottom-nav { width: min(calc(100% - 2rem), 58rem); }
+}

@@ -2,57 +2,33 @@ const POINTS_STORAGE_KEY = 'oneupPoints';
 const STEP_PROGRESS_STORAGE_KEY = 'oneupStepProgress';
 const DAILY_HISTORY_STORAGE_KEY = 'oneupDailyHistory';
 const VILLAGE_STORAGE_KEY = 'oneupVillageResidents';
+const MISSION_STORAGE_KEY = 'oneupMissions';
+const STEP_BANK_STORAGE_KEY = 'oneupStepBank';
+const PROFILE_STORAGE_KEY = 'oneupProfile';
 const HIGH_STEP_WARNING_LIMIT = 60000;
 const POINTS_PER_STEP_BLOCK = 1;
 const STEPS_PER_POINT_BLOCK = 100;
 const BREATHING_POINTS = 5;
+const BANK_TTL_DAYS = 7;
 
 const $ = (selector) => document.querySelector(selector);
-const pointsElement = $('#points');
-const worldElement = $('#world');
-const worldMessageElement = $('#world-message');
-const personFaceElement = $('#person-face');
-const animalFaceElement = $('#animal-face');
-const resetButton = $('#reset-points');
-const stepInput = $('#step-count');
-const stepUpdateButton = $('#update-steps');
-const stepTodayElement = $('#steps-today');
-const stepPointsTodayElement = $('#step-points-today');
-const stepsToNextPointElement = $('#steps-to-next-point');
-const breathingChoiceInputs = document.querySelectorAll('input[name="breathing-exercise"]');
-const breathingPhaseElement = $('#breathing-phase');
-const breathingSecondsElement = $('#breathing-seconds');
-const breathingStartButton = $('#start-breathing');
-const breathingStopButton = $('#stop-breathing');
-const breathingExerciseNameElement = $('#breathing-exercise-name');
-const breathingRoundsElement = $('#breathing-rounds-session');
-const breathingPointsElement = $('#breathing-points-session');
-const developmentStepsTodayElement = $('#development-steps-today');
-const developmentBreathingTodayElement = $('#development-breathing-today');
-const developmentPointsTodayElement = $('#development-points-today');
-const developmentTotalPointsElement = $('#development-total-points');
-const currentStreakElement = $('#current-streak');
-const longestStreakElement = $('#longest-streak');
-const historyListElement = $('#history-list');
-const residentPanel = $('#resident-panel');
-const residentPanelClose = $('#resident-panel-close');
-const residentName = $('#resident-name');
-const residentStory = $('#resident-story');
-const residentMood = $('#resident-mood');
-const residentMission = $('#resident-mission');
-const residentProgress = $('#resident-progress');
-const residentMissing = $('#resident-missing');
-const celebrationElement = $('#village-celebration');
+const $$ = (selector) => Array.from(document.querySelectorAll?.(selector) || []);
+const byId = (id) => document.getElementById?.(id) || $(`#${id}`);
+const setText = (el, value) => { if (el) el.textContent = value; };
+const safeNumber = (value) => Math.max(0, Math.floor(Number(value) || 0));
 
 function getTodayKey() {
   const now = typeof window.__oneUpNow === 'function' ? window.__oneUpNow() : new Date();
   return now.toISOString().slice(0, 10);
 }
-
-function safeNumber(value) { return Math.max(0, Math.floor(Number(value) || 0)); }
+function addDays(dateText, dayCount) { const date = new Date(`${dateText}T12:00:00.000Z`); date.setUTCDate(date.getUTCDate() + dayCount); return date.toISOString().slice(0, 10); }
+function daysBetween(from, to) { return Math.floor((new Date(`${to}T12:00:00.000Z`) - new Date(`${from}T12:00:00.000Z`)) / 86400000); }
+function readJson(key, fallback) { try { const saved = JSON.parse(localStorage.getItem(key)); return saved ?? fallback; } catch { return fallback; } }
+function saveJson(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 function readSavedPoints() { return safeNumber(localStorage.getItem(POINTS_STORAGE_KEY)); }
 function savePoints() { localStorage.setItem(POINTS_STORAGE_KEY, String(points)); }
-function createEmptyDailyRecord(date) { return { date, steps: 0, stepPoints: 0, boxBreathingCount: 0, breathing478Count: 0, totalPoints: 0 }; }
+
+function createEmptyDailyRecord(date) { return { date, steps: 0, stepPoints: 0, boxBreathingCount: 0, breathing478Count: 0, totalPoints: 0, missionBonuses: 0, events: [], donations: { buster: 0, olsen: 0, hansen: 0 } }; }
 function normalizeDailyRecord(record, date) {
   const empty = createEmptyDailyRecord(date);
   if (!record || typeof record !== 'object') return empty;
@@ -60,86 +36,76 @@ function normalizeDailyRecord(record, date) {
   const stepPoints = safeNumber(record.stepPoints ?? record.points);
   const boxBreathingCount = safeNumber(record.boxBreathingCount);
   const breathing478Count = safeNumber(record.breathing478Count);
-  const totalPoints = safeNumber(record.totalPoints || (stepPoints + ((boxBreathingCount + breathing478Count) * BREATHING_POINTS)));
-  return { date, steps, stepPoints, boxBreathingCount, breathing478Count, totalPoints };
+  const missionBonuses = safeNumber(record.missionBonuses);
+  const donations = { ...empty.donations, ...(record.donations || {}) };
+  const totalPoints = safeNumber(record.totalPoints || (stepPoints + ((boxBreathingCount + breathing478Count) * BREATHING_POINTS) + missionBonuses));
+  return { ...empty, ...record, date, steps, stepPoints, boxBreathingCount, breathing478Count, missionBonuses, totalPoints, donations, events: Array.isArray(record.events) ? record.events : [] };
 }
 function readDailyHistory() {
-  const today = getTodayKey();
-  let history = {};
-  try {
-    const saved = JSON.parse(localStorage.getItem(DAILY_HISTORY_STORAGE_KEY));
-    if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
-      history = Object.fromEntries(Object.entries(saved).map(([date, record]) => [date, normalizeDailyRecord(record, date)]));
-    }
-  } catch { history = {}; }
+  const today = getTodayKey(); let history = {};
+  const saved = readJson(DAILY_HISTORY_STORAGE_KEY, {});
+  if (saved && typeof saved === 'object' && !Array.isArray(saved)) history = Object.fromEntries(Object.entries(saved).map(([date, record]) => [date, normalizeDailyRecord(record, date)]));
   if (!history[today]) history[today] = createEmptyDailyRecord(today);
   return history;
 }
-function saveDailyHistory() { localStorage.setItem(DAILY_HISTORY_STORAGE_KEY, JSON.stringify(dailyHistory)); }
+function saveDailyHistory() { saveJson(DAILY_HISTORY_STORAGE_KEY, dailyHistory); }
 function getTodayRecord() { const today = getTodayKey(); if (!dailyHistory[today]) dailyHistory[today] = createEmptyDailyRecord(today); return dailyHistory[today]; }
-function readStepProgress() {
-  const today = getTodayKey();
-  const fallback = { date: today, steps: 0, points: 0, remainder: 0 };
-  try {
-    const saved = JSON.parse(localStorage.getItem(STEP_PROGRESS_STORAGE_KEY));
-    if (!saved || saved.date !== today) return fallback;
-    return { date: today, steps: safeNumber(saved.steps), points: safeNumber(saved.points), remainder: safeNumber(saved.remainder) };
-  } catch { return fallback; }
-}
-function saveStepProgress() { localStorage.setItem(STEP_PROGRESS_STORAGE_KEY, JSON.stringify(stepProgress)); }
-function syncTodayRecordFromStepProgress() {
-  const todayRecord = getTodayRecord();
-  todayRecord.steps = stepProgress.steps;
-  todayRecord.stepPoints = stepProgress.points;
-  todayRecord.totalPoints = todayRecord.stepPoints + ((todayRecord.boxBreathingCount + todayRecord.breathing478Count) * BREATHING_POINTS);
-  saveDailyHistory();
-}
+function logEvent(type, text, data = {}) { const r = getTodayRecord(); r.events.push({ type, text, at: new Date().toISOString(), ...data }); saveDailyHistory(); }
+
+function readStepProgress() { const today = getTodayKey(); const fallback = { date: today, steps: 0, points: 0, remainder: 0 }; const saved = readJson(STEP_PROGRESS_STORAGE_KEY, null); if (!saved || saved.date !== today) return fallback; return { date: today, steps: safeNumber(saved.steps), points: safeNumber(saved.points), remainder: safeNumber(saved.remainder) }; }
+function saveStepProgress() { saveJson(STEP_PROGRESS_STORAGE_KEY, stepProgress); }
+function calculateStepPoints(totalSteps) { return Math.floor(totalSteps / STEPS_PER_POINT_BLOCK) * POINTS_PER_STEP_BLOCK; }
+function syncTodayRecordFromStepProgress() { const r = getTodayRecord(); r.steps = stepProgress.steps; r.stepPoints = stepProgress.points; r.totalPoints = r.stepPoints + ((r.boxBreathingCount + r.breathing478Count) * BREATHING_POINTS) + safeNumber(r.missionBonuses); saveDailyHistory(); }
 
 const residentTemplates = {
-  olsen: { name: 'Fru Olsen', emoji: '👵', type: 'steps', goal: 5000, mood: ['Lidt træt', 'Mere oplagt', 'Energisk og håbefuld'], story: 'Fru Olsen vil gerne have mere energi og arbejder stille mod et personligt mål om at tabe 2 kg. Gåture hjælper hende videre mod målet uden at love et bestemt vægttab.', mission: 'Gå samlet 5.000 nye skridt' },
-  hansen: { name: 'Hr. Hansen', emoji: '👨', type: 'breathing', goal: 5, mood: ['Stresset og anspændt', 'Roligere', 'Smiler mere og finder ro'], story: 'Hr. Hansen føler sig stresset og anspændt. Åndedrætsøvelser hjælper ham gradvist til mere ro og flere smil.', mission: 'Gennemfør mindst 5 fulde åndedrætsrunder' },
-  buster: { name: 'Hunden Buster', emoji: '🐶', type: 'steps', goal: 3000, mood: ['Nysgerrig', 'Gladere', 'Legesyg og aktiv'], story: 'Buster bliver gladere, mere legesyg og mere aktiv, når dine gåture giver liv til landsbyen.', mission: 'Gå samlet 3.000 nye skridt' },
+  buster: { name: 'Buster', fullName: 'Hunden Buster', emoji: '🐶', type: 'steps', goal: 3000, bonus: 15, mood: ['Nysgerrig', 'Gladere', 'Legesyg og aktiv'], story: 'Buster bliver gladere, mere legesyg og mere aktiv, når dine gåture giver liv til landsbyen.', mission: 'Gå tur med Buster' },
+  olsen: { name: 'Fru Olsen', emoji: '👵', type: 'steps', goal: 5000, bonus: 25, mood: ['Lidt træt', 'Mere oplagt', 'Energisk og håbefuld'], story: 'Fru Olsen ønsker mere energi og arbejder mod at føle sig lettere. Gåture hjælper hende gradvist uden løfter om et bestemt vægttab.', mission: 'Hjælp Fru Olsen' },
+  hansen: { name: 'Hr. Hansen', emoji: '👨', type: 'breathing', goal: 5, bonus: 20, mood: ['Stresset og anspændt', 'Roligere', 'Smiler mere og finder ro'], story: 'Åndedrætsøvelser hjælper ham gradvist til mere ro og flere smil.', mission: 'Hjælp Hr. Hansen med at finde ro' },
+};
+const missionMessages = {
+  buster: [[500, 'Selv en kort tur gjorde Buster godt.'], [1500, 'Buster nød at komme ud og få frisk luft.'], [3000, 'Buster er glad og vil gerne lidt længere.'], [Infinity, 'Buster har fået en dejlig lang tur!']],
+  olsen: [[1000, 'Selv en lille gåtur gav Fru Olsen et mildt løft.'], [3000, 'Fru Olsen mærker mere energi i kroppen.'], [5000, 'Fru Olsen er godt på vej og føler sig lettere i hverdagen.'], [Infinity, 'Fru Olsen har fået en omsorgsfuld, energigivende tur!']],
+  hansen: [[1, 'Bare én rolig runde gav Hr. Hansen en pause.'], [3, 'Hr. Hansen trækker vejret lidt friere.'], [5, 'Hr. Hansen er tydeligt roligere og smiler mere.'], [Infinity, 'Hr. Hansen har fundet en dejlig ro.']],
 };
 function freshResident(id, old = {}) { return { id, level: safeNumber(old.level), progress: safeNumber(old.progress), completions: safeNumber(old.completions) }; }
-function readVillage() {
-  try { const saved = JSON.parse(localStorage.getItem(VILLAGE_STORAGE_KEY)); return Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, freshResident(id, saved?.[id])])); }
-  catch { return Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, freshResident(id)])); }
-}
-function saveVillage() { localStorage.setItem(VILLAGE_STORAGE_KEY, JSON.stringify(village)); }
+function readVillage() { const saved = readJson(VILLAGE_STORAGE_KEY, {}); return Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, freshResident(id, saved?.[id])])); }
+function saveVillage() { saveJson(VILLAGE_STORAGE_KEY, village); }
 function getResidentMood(id) { const r = village[id]; const t = residentTemplates[id]; return t.mood[Math.min(t.mood.length - 1, r.level)]; }
-function showCelebration(message) { if (!celebrationElement) return; celebrationElement.textContent = message; celebrationElement.classList.add('show'); window.setTimeout?.(() => celebrationElement.classList.remove('show'), 3200); }
-function addVillageProgress(type, amount) {
-  Object.keys(residentTemplates).forEach((id) => {
-    const t = residentTemplates[id]; if (t.type !== type) return;
-    const r = village[id]; r.progress = Math.max(0, r.progress + amount);
-    while (r.progress >= t.goal) { r.progress -= t.goal; r.level += 1; r.completions += 1; showCelebration(`${t.name} fejrer din hjælp. ${getResidentMood(id)}! En ny mission er startet.`); }
-  });
-  saveVillage(); updateVillageView();
-}
-function updateVillageView() {
-  Object.keys(residentTemplates).forEach((id) => {
-    const el = $(`[data-resident="${id}"]`); if (!el) return;
-    el.classList.toggle('resident-happy', village[id].level > 0);
-    const face = el.querySelector?.('.resident-face'); if (face) face.textContent = residentTemplates[id].emoji;
-  });
-  if (worldElement?.dataset) worldElement.dataset.villageLevel = String(Math.min(5, Math.floor(points / 25) + Object.values(village).reduce((sum, r) => sum + r.level, 0)));
-}
-function openResidentPanel(id) {
-  const t = residentTemplates[id]; const r = village[id]; if (!t || !residentPanel) return;
-  residentName.textContent = t.name; residentStory.textContent = t.story; residentMood.textContent = getResidentMood(id); residentMission.textContent = t.mission;
-  residentProgress.textContent = `${r.progress} / ${t.goal} ${t.type === 'steps' ? 'skridt' : 'runder'}`;
-  residentMissing.textContent = `${Math.max(0, t.goal - r.progress)} ${t.type === 'steps' ? 'skridt' : 'runder'} mangler til næste udviklingstrin.`;
-  residentPanel.hidden = false; residentPanel.classList.add('open');
-}
-function closeResidentPanel() { if (residentPanel) { residentPanel.hidden = true; residentPanel.classList.remove('open'); } }
+
+function createMission(id, old = {}) { const t = residentTemplates[id]; return { id, status: old.status || 'available', progress: safeNumber(old.progress), completedCount: safeNumber(old.completedCount), allocations: Array.isArray(old.allocations) ? old.allocations : [], bonusAwarded: !!old.bonusAwarded, completedAt: old.completedAt || null }; }
+function readMissions() { const saved = readJson(MISSION_STORAGE_KEY, {}); return { activeId: saved?.activeId || null, items: Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, createMission(id, saved?.items?.[id] || saved?.[id])])) }; }
+function saveMissions() { saveJson(MISSION_STORAGE_KEY, missions); }
+function getActiveMission() { return missions.activeId ? missions.items[missions.activeId] : null; }
+function missionProgressText(id) { const t = residentTemplates[id]; const m = missions.items[id]; return `${Math.min(m.progress, t.goal).toLocaleString('da-DK')} / ${t.goal.toLocaleString('da-DK')} ${t.type === 'steps' ? 'skridt' : 'runder'}`; }
+function getMissionMessage(id) { const progress = missions.items[id].progress; return missionMessages[id].find(([limit]) => progress < limit)?.[1] || missionMessages[id].at(-1)[1]; }
+function setMissionStatus(id, status) { if (status === 'active' && missions.items[id].progress >= residentTemplates[id].goal) { missions.items[id].progress = 0; missions.items[id].allocations = []; missions.items[id].bonusAwarded = false; missions.items[id].completedAt = null; } if (missions.activeId && missions.activeId !== id && status === 'active') missions.items[missions.activeId].status = 'paused'; missions.activeId = status === 'active' ? id : (missions.activeId === id ? null : missions.activeId); missions.items[id].status = status; saveMissions(); updateAllViews(); }
+
+function readStepBank() { const saved = readJson(STEP_BANK_STORAGE_KEY, []); return Array.isArray(saved) ? saved.map((e) => ({ date: e.date || getTodayKey(), source: e.source || 'Manuel registrering', steps: safeNumber(e.steps) })).filter((e) => e.steps > 0) : []; }
+function pruneStepBank() { const today = getTodayKey(); stepBank = stepBank.filter((e) => e.steps > 0 && daysBetween(e.date, today) < BANK_TTL_DAYS); saveJson(STEP_BANK_STORAGE_KEY, stepBank); }
+function bankTotal() { pruneStepBank(); return stepBank.reduce((s, e) => s + e.steps, 0); }
+function addToBank(steps, source = 'Overskydende skridt', date = getTodayKey()) { if (steps <= 0) return; stepBank.push({ date, source, steps: safeNumber(steps) }); saveJson(STEP_BANK_STORAGE_KEY, stepBank); logEvent('bank', `${steps} skridt lagt i skridtbanken`, { steps }); }
+function removeFromTodayBank(steps) { let remaining = steps; for (let i = stepBank.length - 1; i >= 0 && remaining > 0; i -= 1) { const e = stepBank[i]; if (e.date !== getTodayKey()) continue; const take = Math.min(e.steps, remaining); e.steps -= take; remaining -= take; } stepBank = stepBank.filter((e) => e.steps > 0); saveJson(STEP_BANK_STORAGE_KEY, stepBank); return steps - remaining; }
+function withdrawBank(steps) { pruneStepBank(); let remaining = Math.min(safeNumber(steps), bankTotal()); stepBank.sort((a, b) => a.date.localeCompare(b.date)); const taken = remaining; for (const e of stepBank) { const take = Math.min(e.steps, remaining); e.steps -= take; remaining -= take; if (!remaining) break; } stepBank = stepBank.filter((e) => e.steps > 0); saveJson(STEP_BANK_STORAGE_KEY, stepBank); return taken; }
+function allocateToMission(id, amount, source) { const m = missions.items[id]; const t = residentTemplates[id]; const room = Math.max(0, t.goal - m.progress); const used = Math.min(safeNumber(amount), room); if (!used) return 0; m.progress += used; m.allocations.push({ date: getTodayKey(), amount: used, source }); getTodayRecord().donations[id] = safeNumber(getTodayRecord().donations[id]) + used; logEvent(t.type === 'steps' ? `mission-${id}-steps` : `mission-${id}-breathing`, `${used} ${t.type === 'steps' ? 'skridt' : 'runder'} til ${t.name}`, { missionId: id, amount: used }); if (m.progress >= t.goal) completeMission(id); saveMissions(); saveDailyHistory(); return used; }
+function completeMission(id) { const m = missions.items[id]; const t = residentTemplates[id]; if (m.bonusAwarded) return; m.status = 'completed'; m.completedAt = getTodayKey(); m.completedCount += 1; m.bonusAwarded = true; points += t.bonus; const r = getTodayRecord(); r.missionBonuses += t.bonus; r.totalPoints += t.bonus; village[id].level += 1; village[id].completions += 1; logEvent('mission-bonus', `${t.mission} gennemført: +${t.bonus} point`, { missionId: id, points: t.bonus }); if (missions.activeId === id) missions.activeId = null; savePoints(); saveVillage(); showCelebration(`${t.name} fejrer stille: ${getMissionMessage(id)} +${t.bonus} point.`); }
+function reopenMissionIfNeeded(id) { const m = missions.items[id], t = residentTemplates[id]; if (m.bonusAwarded && m.progress < t.goal) { m.bonusAwarded = false; m.status = 'paused'; m.completedAt = null; points = Math.max(0, points - t.bonus); const r = getTodayRecord(); r.missionBonuses = Math.max(0, r.missionBonuses - t.bonus); r.totalPoints = Math.max(0, r.totalPoints - t.bonus); logEvent('mission-reopened', `${t.name}s mission blev åbnet igen efter en neutral korrektion.`, { missionId: id }); savePoints(); saveDailyHistory(); saveMissions(); } }
+function rollbackTodayMissionSteps(steps) { let remaining = steps; const ids = Object.keys(missions.items); for (let i = ids.length - 1; i >= 0 && remaining > 0; i -= 1) { const id = ids[i]; const m = missions.items[id], t = residentTemplates[id]; if (t.type !== 'steps') continue; for (let j = m.allocations.length - 1; j >= 0 && remaining > 0; j -= 1) { const a = m.allocations[j]; if (a.date !== getTodayKey()) continue; const take = Math.min(a.amount, remaining); a.amount -= take; m.progress = Math.max(0, m.progress - take); getTodayRecord().donations[id] = Math.max(0, safeNumber(getTodayRecord().donations[id]) - take); remaining -= take; if (!a.amount) m.allocations.splice(j, 1); reopenMissionIfNeeded(id); } } saveMissions(); saveDailyHistory(); return steps - remaining; }
+function distributeNewSteps(delta) { let remaining = safeNumber(delta); const active = getActiveMission(); if (active && residentTemplates[active.id].type === 'steps') remaining -= allocateToMission(active.id, remaining, 'Dagens nye skridt'); if (remaining > 0) addToBank(remaining, active ? 'Overskydende skridt fra aktiv mission' : 'Dagens skridt uden aktiv mission'); }
 
 let points = readSavedPoints();
 let dailyHistory = readDailyHistory();
 let stepProgress = readStepProgress();
 let village = readVillage();
+let missions = readMissions();
+let stepBank = readStepBank();
+let profile = readJson(PROFILE_STORAGE_KEY, {});
 let breathingTimerId = null;
 let breathingSession = null;
 
+const elements = {
+  points: $('#points'), world: $('#world'), worldMessage: $('#world-message'), personFace: $('#person-face'), animalFace: $('#animal-face'), reset: $('#reset-points'), stepInput: $('#step-count'), stepUpdate: $('#update-steps'), stepsToday: $('#steps-today'), stepPointsToday: $('#step-points-today'), stepsToNextPoint: $('#steps-to-next-point'), breathingPhase: $('#breathing-phase'), breathingSeconds: $('#breathing-seconds'), breathingStart: $('#start-breathing'), breathingStop: $('#stop-breathing'), breathingExerciseName: $('#breathing-exercise-name'), breathingRounds: $('#breathing-rounds-session'), breathingPoints: $('#breathing-points-session'), developmentStepsToday: $('#development-steps-today'), developmentBreathingToday: $('#development-breathing-today'), developmentPointsToday: $('#development-points-today'), developmentTotalPoints: $('#development-total-points'), currentStreak: $('#current-streak'), longestStreak: $('#longest-streak'), historyList: $('#history-list'), residentPanel: $('#resident-panel'), celebration: $('#village-celebration'), activeMissionActivity: $('#active-mission-activity'), missionList: $('#mission-list'), bankTotal: $('#bank-total'), bankEntries: $('#bank-entries'), completedMissions: $('#completed-missions'), donatedStats: $('#donated-stats')
+};
+const breathingChoiceInputs = $$('input[name="breathing-exercise"]');
 const worldLevels = [
   { minimumPoints: 0, beauty: 0.12, rainbow: 0, message: 'Niveau 1: Spire. Verdenen er stille, men håbet spirer stille frem.', className: 'level-1', personFace: '🙂', animalFace: '🐶' },
   { minimumPoints: 10, beauty: 0.32, rainbow: 0.1, message: 'Niveau 2: Ro. Mere grønt, blomster og et fredeligt hvilested vokser frem.', className: 'level-2', personFace: '😊', animalFace: '🐶' },
@@ -148,31 +114,44 @@ const worldLevels = [
   { minimumPoints: 80, beauty: 1, rainbow: 0.95, message: 'Niveau 5: Harmoni. Fællesskab, natur og varmt lys skaber en fredelig balance.', className: 'level-5', personFace: '😍', animalFace: '🐕‍🦺' },
 ];
 const breathingExercises = { box: { label: 'Box breathing', phases: [{ name: 'Træk vejret ind', seconds: 4 }, { name: 'Hold vejret', seconds: 4 }, { name: 'Pust ud', seconds: 4 }, { name: 'Hold vejret', seconds: 4 }] }, '478': { label: '4-7-8 breathing', phases: [{ name: 'Træk vejret ind', seconds: 4 }, { name: 'Hold vejret', seconds: 7 }, { name: 'Pust ud', seconds: 8 }] } };
+function showCelebration(message) { if (!elements.celebration) return; elements.celebration.textContent = message; elements.celebration.classList?.add('show'); window.setTimeout?.(() => elements.celebration.classList.remove('show'), 3200); }
 function getCurrentLevel() { return worldLevels.filter((level) => points >= level.minimumPoints).at(-1); }
-function updateWorld() { const level = getCurrentLevel(); pointsElement.textContent = points; worldElement.className = `world ${level.className}`; worldElement.style.setProperty('--beauty', level.beauty); document.documentElement.style.setProperty('--rainbow-strength', level.rainbow); worldMessageElement.textContent = level.message; if (personFaceElement) personFaceElement.textContent = level.personFace; if (animalFaceElement) animalFaceElement.textContent = level.animalFace; updateVillageView(); }
-function updateStepView() { stepInput.value = stepProgress.steps; stepTodayElement.textContent = stepProgress.steps; stepPointsTodayElement.textContent = stepProgress.points; stepsToNextPointElement.textContent = stepProgress.remainder === 0 ? STEPS_PER_POINT_BLOCK : STEPS_PER_POINT_BLOCK - stepProgress.remainder; }
+function updateWorld() { const level = getCurrentLevel(); setText(elements.points, points); if (elements.world) { elements.world.className = `world ${level.className}`; elements.world.style?.setProperty('--beauty', level.beauty); } document.documentElement?.style?.setProperty('--rainbow-strength', level.rainbow); setText(elements.worldMessage, level.message); setText(elements.personFace, level.personFace); setText(elements.animalFace, level.animalFace); updateVillageView(); }
+function updateVillageView() { Object.keys(residentTemplates).forEach((id) => { const el = $(`[data-resident="${id}"]`); if (!el) return; el.classList?.toggle('resident-happy', village[id].level > 0); }); if (elements.world?.dataset) elements.world.dataset.villageLevel = String(Math.min(5, Math.floor(points / 25) + Object.values(village).reduce((sum, r) => sum + r.level, 0))); }
+function updateStepView() { if (elements.stepInput) elements.stepInput.value = stepProgress.steps; setText(elements.stepsToday, stepProgress.steps); setText(elements.stepPointsToday, stepProgress.points); setText(elements.stepsToNextPoint, stepProgress.remainder === 0 ? STEPS_PER_POINT_BLOCK : STEPS_PER_POINT_BLOCK - stepProgress.remainder); }
 function getBreathingCount(record) { return record.boxBreathingCount + record.breathing478Count; }
 function isActiveDay(record) { return record.steps >= 1000 || getBreathingCount(record) > 0; }
-function addDays(dateText, dayCount) { const date = new Date(`${dateText}T12:00:00.000Z`); date.setUTCDate(date.getUTCDate() + dayCount); return date.toISOString().slice(0, 10); }
 function formatStreak(dayCount) { return `${dayCount} ${dayCount === 1 ? 'dag' : 'dage'}`; }
 function calculateStreaks() { const dates = Object.keys(dailyHistory).sort(); let longest = 0, run = 0, previousDate = null; dates.forEach((date) => { if (!isActiveDay(dailyHistory[date])) { run = 0; previousDate = date; return; } run = previousDate && addDays(previousDate, 1) === date ? run + 1 : 1; longest = Math.max(longest, run); previousDate = date; }); let current = 0, date = getTodayKey(); while (dailyHistory[date] && isActiveDay(dailyHistory[date])) { current += 1; date = addDays(date, -1); } return { current, longest }; }
-function updateDevelopmentView() { const todayRecord = getTodayRecord(); const streaks = calculateStreaks(); developmentStepsTodayElement.textContent = todayRecord.steps; developmentBreathingTodayElement.textContent = getBreathingCount(todayRecord); developmentPointsTodayElement.textContent = todayRecord.totalPoints; developmentTotalPointsElement.textContent = points; currentStreakElement.textContent = formatStreak(streaks.current); longestStreakElement.textContent = formatStreak(streaks.longest); historyListElement.textContent = ''; historyListElement.children.length = 0; for (let index = 6; index >= 0; index -= 1) { const date = addDays(getTodayKey(), -index); const record = dailyHistory[date] || createEmptyDailyRecord(date); const item = document.createElement('li'); const dayName = new Intl.DateTimeFormat('da-DK', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(new Date(`${date}T12:00:00.000Z`)); item.innerHTML = `<span>${dayName}</span><strong>${record.steps} skridt</strong><span>${getBreathingCount(record)} runder</span><strong>${record.totalPoints} point</strong>`; historyListElement.appendChild(item); } }
-function refreshStepDate() { const today = getTodayKey(); if (stepProgress.date !== today) { stepProgress = { date: today, steps: 0, points: 0, remainder: 0 }; saveStepProgress(); syncTodayRecordFromStepProgress(); } }
-function calculateStepPoints(totalSteps) { return Math.floor(totalSteps / STEPS_PER_POINT_BLOCK) * POINTS_PER_STEP_BLOCK; }
-function updateDailySteps(totalSteps) { refreshStepDate(); const safeSteps = safeNumber(totalSteps); if (safeSteps > HIGH_STEP_WARNING_LIMIT && !window.confirm('Det er et usædvanligt højt antal skridt. Vil du rette tallet? Tryk Annuller for at rette eller OK for at gemme det.')) { stepInput.value = stepProgress.steps; return; } const previousSteps = stepProgress.steps; const newStepPoints = calculateStepPoints(safeSteps); const pointChange = newStepPoints - stepProgress.points; points = Math.max(0, points + pointChange); stepProgress = { date: getTodayKey(), steps: safeSteps, points: newStepPoints, remainder: safeSteps % STEPS_PER_POINT_BLOCK }; savePoints(); saveStepProgress(); syncTodayRecordFromStepProgress(); addVillageProgress('steps', safeSteps - previousSteps); updateWorld(); updateStepView(); updateDevelopmentView(); }
-function getSelectedBreathingKey() { return Array.from(breathingChoiceInputs).find((input) => input.checked)?.value || 'box'; }
-function updateBreathingView(message) { if (!breathingSession) { breathingExerciseNameElement && (breathingExerciseNameElement.textContent = 'Ingen øvelse i gang'); breathingPhaseElement.textContent = message || 'Vælg en øvelse og tryk start.'; breathingSecondsElement.textContent = '0'; breathingRoundsElement && (breathingRoundsElement.textContent = '0'); breathingPointsElement && (breathingPointsElement.textContent = '0'); return; } const phase = breathingSession.exercise.phases[breathingSession.phaseIndex]; breathingExerciseNameElement && (breathingExerciseNameElement.textContent = breathingSession.exercise.label); breathingPhaseElement.textContent = `${breathingSession.exercise.label}: ${phase.name}`; breathingSecondsElement.textContent = breathingSession.secondsLeft; breathingRoundsElement && (breathingRoundsElement.textContent = breathingSession.rounds); breathingPointsElement && (breathingPointsElement.textContent = breathingSession.rounds * BREATHING_POINTS); }
-function saveCompletedBreathingRound(key) { const todayRecord = getTodayRecord(); if (key === '478') todayRecord.breathing478Count += 1; else todayRecord.boxBreathingCount += 1; todayRecord.totalPoints += BREATHING_POINTS; points = Math.max(0, points + BREATHING_POINTS); saveDailyHistory(); savePoints(); addVillageProgress('breathing', 1); updateWorld(); updateDevelopmentView(); }
+function updateDevelopmentView() { const r = getTodayRecord(), s = calculateStreaks(); setText(elements.developmentStepsToday, r.steps); setText(elements.developmentBreathingToday, getBreathingCount(r)); setText(elements.developmentPointsToday, r.totalPoints); setText(elements.developmentTotalPoints, points); setText(elements.currentStreak, formatStreak(s.current)); setText(elements.longestStreak, formatStreak(s.longest)); if (elements.historyList) { elements.historyList.textContent = ''; elements.historyList.children.length = 0; for (let i = 6; i >= 0; i -= 1) { const date = addDays(getTodayKey(), -i), rec = dailyHistory[date] || createEmptyDailyRecord(date), li = document.createElement('li'); li.innerHTML = `<span>${date}</span><strong>${rec.steps} skridt</strong><span>${getBreathingCount(rec)} runder</span><strong>${rec.totalPoints} point</strong>`; elements.historyList.appendChild(li); } } updateExtraStats(); }
+function updateExtraStats() { const completed = Object.values(missions.items).filter((m) => m.completedCount || m.bonusAwarded); if (elements.completedMissions) elements.completedMissions.innerHTML = completed.length ? completed.map((m) => `<li>${residentTemplates[m.id].mission}: ${m.completedCount} gang(e)</li>`).join('') : '<li>Ingen gennemførte missioner endnu.</li>'; const totals = { buster: 0, olsen: 0, hansen: 0 }; Object.values(dailyHistory).forEach((r) => Object.keys(totals).forEach((id) => { totals[id] += safeNumber(r.donations?.[id]); })); if (elements.donatedStats) elements.donatedStats.innerHTML = Object.keys(totals).map((id) => `<li>${residentTemplates[id].name}: ${totals[id].toLocaleString('da-DK')} ${residentTemplates[id].type === 'steps' ? 'skridt' : 'runder'}</li>`).join(''); }
+function refreshStepDate() { const today = getTodayKey(); if (stepProgress.date !== today) { stepProgress = { date: today, steps: 0, points: 0, remainder: 0 }; saveStepProgress(); syncTodayRecordFromStepProgress(); } pruneStepBank(); }
+function updateDailySteps(totalSteps) { refreshStepDate(); const safeSteps = safeNumber(totalSteps); if (safeSteps > HIGH_STEP_WARNING_LIMIT && !window.confirm('Det er et usædvanligt højt antal skridt. Vil du rette tallet? Tryk Annuller for at rette eller OK for at gemme det.')) { if (elements.stepInput) elements.stepInput.value = stepProgress.steps; return; } const previousSteps = stepProgress.steps; const delta = safeSteps - previousSteps; const newStepPoints = calculateStepPoints(safeSteps); const pointChange = newStepPoints - stepProgress.points; points = Math.max(0, points + pointChange); stepProgress = { date: getTodayKey(), steps: safeSteps, points: newStepPoints, remainder: safeSteps % STEPS_PER_POINT_BLOCK }; if (delta > 0) distributeNewSteps(delta); if (delta < 0) { const need = Math.abs(delta); const fromBank = removeFromTodayBank(need); rollbackTodayMissionSteps(need - fromBank); logEvent('step-correction', `Dagens skridt blev rettet ned med ${need}. Det er helt okay at rette tal.`, { amount: need }); } savePoints(); saveStepProgress(); syncTodayRecordFromStepProgress(); updateAllViews(); }
+function getSelectedBreathingKey() { return breathingChoiceInputs.find((input) => input.checked)?.value || 'box'; }
+function updateBreathingView(message) { if (!breathingSession) { setText(elements.breathingExerciseName, 'Ingen øvelse i gang'); setText(elements.breathingPhase, message || 'Vælg en øvelse og tryk start.'); setText(elements.breathingSeconds, '0'); setText(elements.breathingRounds, '0'); setText(elements.breathingPoints, '0'); return; } const phase = breathingSession.exercise.phases[breathingSession.phaseIndex] || breathingSession.exercise.phases[0]; setText(elements.breathingExerciseName, breathingSession.exercise.label); setText(elements.breathingPhase, `${breathingSession.exercise.label}: ${phase.name}`); setText(elements.breathingSeconds, breathingSession.secondsLeft); setText(elements.breathingRounds, breathingSession.rounds); setText(elements.breathingPoints, breathingSession.rounds * BREATHING_POINTS); }
+function saveCompletedBreathingRound(key) { const r = getTodayRecord(); if (key === '478') r.breathing478Count += 1; else r.boxBreathingCount += 1; r.totalPoints += BREATHING_POINTS; points += BREATHING_POINTS; const active = getActiveMission(); if (active?.id === 'hansen') allocateToMission('hansen', 1, key === '478' ? '4-7-8 breathing' : 'Box breathing'); saveDailyHistory(); savePoints(); updateAllViews(); }
 function completeBreathingRound() { breathingSession.rounds += 1; saveCompletedBreathingRound(breathingSession.key); breathingSession.phaseIndex = 0; breathingSession.secondsLeft = breathingSession.exercise.phases[0].seconds; updateBreathingView(); }
 function tickBreathingTimer() { if (!breathingSession) return; breathingSession.secondsLeft -= 1; if (breathingSession.secondsLeft > 0) { updateBreathingView(); return; } breathingSession.phaseIndex += 1; if (breathingSession.phaseIndex >= breathingSession.exercise.phases.length) { completeBreathingRound(); return; } breathingSession.secondsLeft = breathingSession.exercise.phases[breathingSession.phaseIndex].seconds; updateBreathingView(); }
 function startBreathingExercise() { refreshStepDate(); if (breathingTimerId !== null) window.clearInterval(breathingTimerId); const key = getSelectedBreathingKey(); breathingSession = { key, exercise: breathingExercises[key], phaseIndex: 0, secondsLeft: breathingExercises[key].phases[0].seconds, rounds: 0 }; updateBreathingView(); breathingTimerId = window.setInterval(tickBreathingTimer, 1000); }
 function stopBreathingExercise() { if (breathingTimerId !== null) window.clearInterval(breathingTimerId); breathingTimerId = null; const earned = breathingSession ? breathingSession.rounds * BREATHING_POINTS : 0; breathingSession = null; updateBreathingView(`Sessionen blev stoppet. Du beholder ${earned} point fra fuldførte runder.`); }
+function updateMissionsView() { if (elements.activeMissionActivity) { const active = getActiveMission(); elements.activeMissionActivity.innerHTML = active ? `<strong>${residentTemplates[active.id].mission}</strong><br>${missionProgressText(active.id)}<br>${getMissionMessage(active.id)}` : 'Ingen aktiv mission lige nu. Vælg en på Missioner-siden.'; } if (elements.missionList) elements.missionList.innerHTML = Object.keys(missions.items).map((id) => { const t = residentTemplates[id], m = missions.items[id]; return `<article class="mission-card ${missions.activeId === id ? 'active' : ''}"><h3>${t.emoji} ${t.mission}</h3><p>${t.story}</p><progress max="${t.goal}" value="${Math.min(m.progress, t.goal)}"></progress><strong>${missionProgressText(id)}</strong><p>${getMissionMessage(id)}</p><div class="button-row"><button data-mission-action="active" data-mission-id="${id}">${missions.activeId === id ? 'Aktiv' : 'Vælg / fortsæt'}</button><button data-mission-action="paused" data-mission-id="${id}">Pause</button></div></article>`; }).join(''); }
+function updateBankView() { const total = bankTotal(); setText(elements.bankTotal, total.toLocaleString('da-DK')); if (elements.bankEntries) elements.bankEntries.innerHTML = stepBank.length ? stepBank.map((e) => `<li>${e.steps.toLocaleString('da-DK')} skridt fra ${e.source} (${e.date}) – udløber om ${Math.max(0, BANK_TTL_DAYS - daysBetween(e.date, getTodayKey()))} dage</li>`).join('') : '<li>Ingen ufordelte skridt. Ældste skridt bruges først, når du donerer.</li>'; }
+function updateAllViews() { updateWorld(); updateStepView(); updateDevelopmentView(); updateMissionsView(); updateBankView(); updateBreathingView(); }
+function openResidentPanel(id) { const t = residentTemplates[id], r = village[id], panel = elements.residentPanel; if (!t || !panel) return; setText($('#resident-name'), t.fullName || t.name); setText($('#resident-story'), t.story); setText($('#resident-mood'), getResidentMood(id)); setText($('#resident-mission'), t.mission); setText($('#resident-progress'), missionProgressText(id)); setText($('#resident-missing'), `${Math.max(0, t.goal - missions.items[id].progress)} ${t.type === 'steps' ? 'skridt' : 'runder'} mangler.`); panel.hidden = false; panel.classList?.add('open'); }
+function closeResidentPanel() { if (elements.residentPanel) { elements.residentPanel.hidden = true; elements.residentPanel.classList?.remove('open'); } }
+function showPage(page) { $$('.app-section').forEach((s) => { s.hidden = s.dataset.page !== page; }); $$('.bottom-nav button').forEach((b) => b.classList.toggle('active', b.dataset.nav === page)); }
+function saveProfileFromForm() { const form = $('#profile-form'); if (!form) return; profile = Object.fromEntries($$('#profile-form input, #profile-form select').map((el) => [el.name, el.value])); saveJson(PROFILE_STORAGE_KEY, profile); setText($('#profile-save-status'), 'Profilen er gemt lokalt på din enhed.'); }
+function donateFromBank() { const id = $('#bank-target')?.value || 'buster'; const custom = safeNumber($('#bank-custom-amount')?.value); const selected = safeNumber($('[name="bank-quick"]:checked')?.value); const wanted = custom || selected || bankTotal(); const taken = withdrawBank(Math.min(wanted, bankTotal())); allocateToMission(id, taken, 'Skridtbank'); updateAllViews(); }
 
-stepUpdateButton.addEventListener('click', () => updateDailySteps(stepInput.value));
-breathingStartButton.addEventListener('click', startBreathingExercise);
-breathingStopButton.addEventListener('click', stopBreathingExercise);
-document.querySelectorAll?.('[data-resident]').forEach?.((el) => el.addEventListener('click', () => openResidentPanel(el.dataset.resident)));
-residentPanelClose?.addEventListener('click', closeResidentPanel);
-resetButton.addEventListener('click', () => { if (!window.confirm('Er du sikker på, at du vil nulstille dine point?')) return; points = 0; stepProgress = { date: getTodayKey(), steps: 0, points: 0, remainder: 0 }; village = readVillage(); Object.keys(village).forEach((id) => { village[id] = freshResident(id); }); localStorage.removeItem(POINTS_STORAGE_KEY); localStorage.removeItem(STEP_PROGRESS_STORAGE_KEY); localStorage.removeItem(DAILY_HISTORY_STORAGE_KEY); localStorage.removeItem(VILLAGE_STORAGE_KEY); dailyHistory = {}; syncTodayRecordFromStepProgress(); updateWorld(); updateStepView(); updateDevelopmentView(); updateBreathingView(); closeResidentPanel(); });
+elements.stepUpdate?.addEventListener('click', () => updateDailySteps(elements.stepInput.value));
+elements.breathingStart?.addEventListener('click', startBreathingExercise);
+elements.breathingStop?.addEventListener('click', stopBreathingExercise);
+$$('[data-resident]').forEach((el) => el.addEventListener('click', () => openResidentPanel(el.dataset.resident)));
+$('#resident-panel-close')?.addEventListener('click', closeResidentPanel);
+$$('.bottom-nav button').forEach((b) => b.addEventListener('click', () => showPage(b.dataset.nav)));
+document.addEventListener?.('click', (event) => { const btn = event.target.closest?.('[data-mission-action]'); if (btn) setMissionStatus(btn.dataset.missionId, btn.dataset.missionAction); });
+$('#donate-bank')?.addEventListener('click', donateFromBank);
+$('#profile-form')?.addEventListener('submit', (event) => { event.preventDefault(); saveProfileFromForm(); });
+elements.reset?.addEventListener('click', () => { if (!window.confirm('Er du sikker på, at du vil nulstille dine point?')) return; points = 0; stepProgress = { date: getTodayKey(), steps: 0, points: 0, remainder: 0 }; village = Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, freshResident(id)])); missions = readMissions(); missions.items = Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, createMission(id)])); missions.activeId = null; stepBank = []; localStorage.removeItem(POINTS_STORAGE_KEY); localStorage.removeItem(STEP_PROGRESS_STORAGE_KEY); localStorage.removeItem(DAILY_HISTORY_STORAGE_KEY); localStorage.removeItem(VILLAGE_STORAGE_KEY); localStorage.removeItem(MISSION_STORAGE_KEY); localStorage.removeItem(STEP_BANK_STORAGE_KEY); dailyHistory = {}; syncTodayRecordFromStepProgress(); saveMissions(); updateAllViews(); closeResidentPanel(); });
 
-refreshStepDate(); syncTodayRecordFromStepProgress(); updateWorld(); updateStepView(); updateDevelopmentView(); updateBreathingView(); saveVillage();
+refreshStepDate(); syncTodayRecordFromStepProgress(); saveVillage(); saveMissions(); updateAllViews(); showPage('village');
