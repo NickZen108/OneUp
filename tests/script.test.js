@@ -147,18 +147,27 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   const app = loadApp({ savedPoints: 30 });
 
   assert.equal(app.points.textContent, 30);
-  assert.equal(app.world.className, 'world level-2');
-  assert.equal(app.message.textContent, 'Fantastisk. Mennesker og dyr bliver mere rolige.');
+  assert.equal(app.world.className, 'world level-3');
+  assert.equal(app.message.textContent, 'Niveau 3: Glæde. Farverne bliver klarere, og verdenen fyldes med leg og liv.');
   assert.equal(app.person.textContent, '😄');
   assert.equal(app.animal.textContent, '🐕');
+}
+
+{
+  const app = loadApp({ savedPoints: 80 });
+
+  assert.equal(app.world.className, 'world level-5');
+  assert.equal(app.message.textContent, 'Niveau 5: Harmoni. Fællesskab, natur og varmt lys skaber en fredelig balance.');
+  assert.equal(app.person.textContent, '😍');
+  assert.equal(app.root.style.values['--rainbow-strength'], 0.95);
 }
 
 {
   const app = loadApp({ savedPoints: 'not-a-number' });
 
   assert.equal(app.points.textContent, 0);
-  assert.equal(app.world.className, 'world');
-  assert.equal(app.message.textContent, 'Start roligt. Hver lille handling tæller.');
+  assert.equal(app.world.className, 'world level-1');
+  assert.equal(app.message.textContent, 'Niveau 1: Spire. Verdenen er stille, men håbet spirer stille frem.');
 }
 
 {
@@ -234,7 +243,7 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   const reopenedSession = loadApp({ existingStorage: firstSession.storage });
 
   assert.equal(reopenedSession.points.textContent, 35);
-  assert.equal(reopenedSession.world.className, 'world level-2');
+  assert.equal(reopenedSession.world.className, 'world level-3');
   assert.equal(reopenedSession.stepsToday.textContent, 2500);
   assert.equal(reopenedSession.stepPointsToday.textContent, 25);
   assert.equal(reopenedSession.storage.get('oneupPoints'), '35');
@@ -294,6 +303,6 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   assert.equal(app.points.textContent, 0);
   assert.equal(app.storage.has('oneupPoints'), false);
   assert.equal(app.storage.has('oneupStepProgress'), false);
-  assert.equal(app.world.className, 'world');
-  assert.equal(app.message.textContent, 'Start roligt. Hver lille handling tæller.');
+  assert.equal(app.world.className, 'world level-1');
+  assert.equal(app.message.textContent, 'Niveau 1: Spire. Verdenen er stille, men håbet spirer stille frem.');
 }
