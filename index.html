@@ -8,7 +8,7 @@
   </head>
   <body>
     <main class="app-shell" aria-labelledby="app-title">
-      <section class="hero-card">
+      <section class="hero-card app-section" data-page="village">
         <p class="eyebrow">Velkommen til din lille sundhedsverden</p>
         <h1 id="app-title">OneUp</h1>
         <p class="subtitle">Gamify Your Health</p>
@@ -19,7 +19,7 @@
         </div>
       </section>
 
-      <section class="world-card" aria-label="En lille landsby, der vokser med dine point og missioner">
+      <section class="world-card app-section" data-page="village" aria-label="En lille landsby, der vokser med dine point og missioner">
         <div class="sky">
           <div class="sun" aria-hidden="true"></div>
           <div class="cloud cloud-one" aria-hidden="true"></div>
@@ -60,7 +60,7 @@
         <div id="village-celebration" class="village-celebration" aria-live="polite"></div>
       </section>
 
-      <section class="resident-panel" id="resident-panel" hidden aria-live="polite" aria-label="Nærbillede af beboer">
+      <section class="resident-panel app-section" data-page="village" id="resident-panel" hidden aria-live="polite" aria-label="Nærbillede af beboer">
         <button type="button" class="resident-panel-close" id="resident-panel-close">Luk ×</button>
         <h2 id="resident-name">Beboer</h2>
         <p id="resident-story"></p>
@@ -72,7 +72,7 @@
         </dl>
       </section>
 
-      <section class="activities" aria-label="Aktiviteter">
+      <section class="activities app-section" data-page="activity" aria-label="Aktiviteter">
         <article class="activity-card">
           <div>
             <h2>Daglige skridt</h2>
@@ -98,6 +98,26 @@
             </div>
           </dl>
         </article>
+          <div class="activity-card soft-panel">
+            <h2>Aktiv mission</h2>
+            <p id="active-mission-activity">Ingen aktiv mission lige nu.</p>
+          </div>
+          <div class="activity-card soft-panel">
+            <h2>Skridtbank</h2>
+            <p>Ufordelte skridt: <strong id="bank-total">0</strong></p>
+            <ul id="bank-entries" class="history-list"></ul>
+            <label>Send til
+              <select id="bank-target"><option value="buster">Buster</option><option value="olsen">Fru Olsen</option></select>
+            </label>
+            <div class="quick-buttons">
+              <label><input type="radio" name="bank-quick" value="500" /> 500 skridt</label>
+              <label><input type="radio" name="bank-quick" value="1000" /> 1.000 skridt</label>
+              <label><input type="radio" name="bank-quick" value="0" checked /> Alt muligt</label>
+            </div>
+            <input id="bank-custom-amount" class="number-input" type="number" min="0" placeholder="Eller skriv antal" />
+            <button type="button" class="secondary-button" id="donate-bank">Overfør ældste skridt først</button>
+          </div>
+
 
         <article class="activity-card">
           <div>
@@ -127,7 +147,7 @@
         </article>
       </section>
 
-      <section class="development-card" aria-labelledby="development-title">
+      <section class="development-card app-section" data-page="development" aria-labelledby="development-title">
         <div>
           <p class="eyebrow">Din daglige rytme</p>
           <h2 id="development-title">Min udvikling</h2>
@@ -168,10 +188,54 @@
           <h3>Seneste 7 dage</h3>
           <ul class="history-list" id="history-list" aria-live="polite"></ul>
         </div>
+        <div>
+          <h3>Gennemførte missioner</h3>
+          <ul class="history-list" id="completed-missions"></ul>
+        </div>
+        <div>
+          <h3>Skridt og runder doneret til beboere</h3>
+          <ul class="history-list" id="donated-stats"></ul>
+        </div>
+      </section>
+
+
+      <section class="mission-page app-section" data-page="missions" aria-labelledby="missions-title">
+        <p class="eyebrow">Vælg én omsorgsfuld opgave ad gangen</p>
+        <h2 id="missions-title">Missioner</h2>
+        <p>Du kan vælge, skifte, pause og fortsætte missioner. Delvis fremgang hjælper altid beboeren.</p>
+        <div id="mission-list" class="mission-list" aria-live="polite"></div>
+      </section>
+
+      <section class="profile-page app-section" data-page="profile" aria-labelledby="profile-title">
+        <p class="eyebrow">Valgfri første version</p>
+        <h2 id="profile-title">Profil</h2>
+        <p class="info-box">Disse oplysninger bruges senere til mere relevante mål og anonym statistik. Du kan springe dem over.</p>
+        <form id="profile-form" class="profile-form">
+          <label>Navn eller kaldenavn <input name="nickname" /></label>
+          <label>Fødselsår <input name="birthYear" type="number" inputmode="numeric" /></label>
+          <label>Højde <input name="height" type="number" inputmode="decimal" /></label>
+          <label>Vægt <input name="weight" type="number" inputmode="decimal" /></label>
+          <label>Biologisk køn <select name="sex"><option value="">Ønsker ikke at oplyse</option><option>Kvinde</option><option>Mand</option><option>Andet</option></select></label>
+          <label>Bopælsland <input name="country" /></label>
+          <label>Sprog <input name="language" value="Dansk" /></label>
+          <label>Enhed <select name="unit"><option>kg/cm</option><option>lb/ft</option></select></label>
+          <button class="complete-button" type="submit">Gem profil lokalt</button>
+          <p id="profile-save-status" aria-live="polite"></p>
+        </form>
+        <p class="info-box">Landesammenligninger kommer senere, når der er nok anonyme brugerdata.</p>
       </section>
 
       <button type="button" class="reset-button" id="reset-points">Nulstil mine point</button>
     </main>
+
+
+    <nav class="bottom-nav" aria-label="Hovedmenu">
+      <button type="button" data-nav="village">🏡<span>Landsby</span></button>
+      <button type="button" data-nav="missions">🎯<span>Missioner</span></button>
+      <button type="button" data-nav="activity">👣<span>Aktivitet</span></button>
+      <button type="button" data-nav="development">🌱<span>Udvikling</span></button>
+      <button type="button" data-nav="profile">♡<span>Profil</span></button>
+    </nav>
 
     <script src="script.js"></script>
   </body>
