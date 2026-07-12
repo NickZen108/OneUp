@@ -56,6 +56,7 @@
           <div class="flower flower-five" aria-hidden="true">✿</div>
         </div>
 
+        <p class="info-box">Tryk på en beboer for at se, hvordan du kan hjælpe.</p>
         <p id="world-message" class="world-message">Start roligt. Hver lille handling tæller.</p>
         <div id="village-celebration" class="village-celebration" aria-live="polite"></div>
       </section>
@@ -70,6 +71,8 @@
           <div><dt>Fremdrift</dt><dd id="resident-progress"></dd></div>
           <div><dt>Næste udviklingstrin</dt><dd id="resident-missing"></dd></div>
         </dl>
+        <p id="resident-status-message" class="info-box"></p>
+        <div class="button-row"><button type="button" class="complete-button" id="resident-primary-action">Start mission</button><button type="button" class="secondary-button" id="resident-pause-action" hidden>Pause</button></div>
       </section>
 
       <section class="activities app-section" data-page="activity" aria-label="Aktiviteter">
@@ -104,7 +107,7 @@
           </div>
           <div class="activity-card soft-panel">
             <h2>Skridtbank</h2>
-            <p>Ufordelte skridt: <strong id="bank-total">0</strong></p>
+            <p>Ubrugte skridt kan gives til en beboer eller gemmes til senere.</p><p>Ufordelte skridt: <strong id="bank-total">0</strong></p>
             <ul id="bank-entries" class="history-list"></ul>
             <label>Send til
               <select id="bank-target"><option value="buster">Buster</option><option value="olsen">Fru Olsen</option></select>
@@ -219,10 +222,13 @@
           <label>Bopælsland <input name="country" /></label>
           <label>Sprog <input name="language" value="Dansk" /></label>
           <label>Enhed <select name="unit"><option>kg/cm</option><option>lb/ft</option></select></label>
+          <label><input id="setting-vibration" name="vibration" type="checkbox" checked /> Vibration til/fra</label>
+          <label><input id="setting-sound" name="sound" type="checkbox" checked /> Lydeffekter til/fra</label>
+          <label><input id="setting-voices" name="voices" type="checkbox" /> Beboerstemmer til/fra</label>
           <button class="complete-button" type="submit">Gem profil lokalt</button>
           <p id="profile-save-status" aria-live="polite"></p>
         </form>
-        <p class="info-box">Landesammenligninger kommer senere, når der er nok anonyme brugerdata.</p>
+        <p class="info-box">Flere aktiviteter som søvn, løb, cykling og naturture kommer senere.</p><p class="info-box">Landesammenligninger kommer senere, når der er nok anonyme brugerdata.</p>
       </section>
 
       <button type="button" class="reset-button" id="reset-points">Nulstil mine point</button>
