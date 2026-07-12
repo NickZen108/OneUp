@@ -21,7 +21,7 @@ function createElement() {
   };
 }
 
-function loadApp({ savedPoints = null, confirmResult = true } = {}) {
+function loadApp({ savedPoints = null, confirmResult = true, existingStorage = null } = {}) {
   const points = createElement();
   const world = createElement();
   const message = createElement();
@@ -30,10 +30,10 @@ function loadApp({ savedPoints = null, confirmResult = true } = {}) {
   const reset = createElement();
   const completeButtons = [createElement(), createElement()];
   const root = createElement();
-  const storage = new Map();
+  const storage = existingStorage ?? new Map();
 
   if (savedPoints !== null) {
-    storage.set('oneup-points', String(savedPoints));
+    storage.set('oneupPoints', String(savedPoints));
   }
 
   const document = {
@@ -62,6 +62,9 @@ function loadApp({ savedPoints = null, confirmResult = true } = {}) {
       setItem(key, value) {
         storage.set(key, value);
       },
+      removeItem(key) {
+        storage.delete(key);
+      },
     },
     window: {
       confirm() {
@@ -86,13 +89,32 @@ function loadApp({ savedPoints = null, confirmResult = true } = {}) {
 }
 
 {
+  const app = loadApp({ savedPoints: 'not-a-number' });
+
+  assert.equal(app.points.textContent, 0);
+  assert.equal(app.world.className, 'world');
+  assert.equal(app.message.textContent, 'Start roligt. Hver lille handling tæller.');
+}
+
+{
   const app = loadApp({ savedPoints: 10 });
 
   app.completeButtons[0].listeners.click();
 
   assert.equal(app.points.textContent, 20);
-  assert.equal(app.storage.get('oneup-points'), '20');
+  assert.equal(app.storage.get('oneupPoints'), '20');
   assert.equal(app.world.className, 'world level-1');
+}
+
+{
+  const firstSession = loadApp({ savedPoints: 10 });
+
+  firstSession.completeButtons[0].listeners.click();
+  const reopenedSession = loadApp({ existingStorage: firstSession.storage });
+
+  assert.equal(reopenedSession.points.textContent, 20);
+  assert.equal(reopenedSession.world.className, 'world level-1');
+  assert.equal(reopenedSession.storage.get('oneupPoints'), '20');
 }
 
 {
@@ -101,7 +123,7 @@ function loadApp({ savedPoints = null, confirmResult = true } = {}) {
   app.reset.listeners.click();
 
   assert.equal(app.points.textContent, 50);
-  assert.equal(app.storage.get('oneup-points'), '50');
+  assert.equal(app.storage.get('oneupPoints'), '50');
 }
 
 {
@@ -110,7 +132,7 @@ function loadApp({ savedPoints = null, confirmResult = true } = {}) {
   app.reset.listeners.click();
 
   assert.equal(app.points.textContent, 0);
-  assert.equal(app.storage.get('oneup-points'), '0');
+  assert.equal(app.storage.has('oneupPoints'), false);
   assert.equal(app.world.className, 'world');
   assert.equal(app.message.textContent, 'Start roligt. Hver lille handling tæller.');
 }
