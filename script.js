@@ -1,4 +1,4 @@
-const POINTS_STORAGE_KEY = 'oneup-points';
+const POINTS_STORAGE_KEY = 'oneupPoints';
 
 const pointsElement = document.querySelector('#points');
 const worldElement = document.querySelector('#world');
@@ -9,9 +9,15 @@ const buttons = document.querySelectorAll('.complete-button');
 const resetButton = document.querySelector('#reset-points');
 
 function readSavedPoints() {
-  const savedPoints = Number(localStorage.getItem(POINTS_STORAGE_KEY));
+  const savedPointsText = localStorage.getItem(POINTS_STORAGE_KEY);
 
-  return Number.isInteger(savedPoints) && savedPoints >= 0 ? savedPoints : 0;
+  if (savedPointsText === null) {
+    return 0;
+  }
+
+  const savedPoints = Number(savedPointsText);
+
+  return Number.isFinite(savedPoints) && savedPoints >= 0 ? savedPoints : 0;
 }
 
 function savePoints() {
@@ -94,7 +100,7 @@ resetButton.addEventListener('click', () => {
   }
 
   points = 0;
-  savePoints();
+  localStorage.removeItem(POINTS_STORAGE_KEY);
   updateWorld();
 });
 
