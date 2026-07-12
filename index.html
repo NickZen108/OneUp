@@ -19,7 +19,7 @@
         </div>
       </section>
 
-      <section class="world-card" aria-label="En lille verden, der vokser med dine point">
+      <section class="world-card" aria-label="En lille landsby, der vokser med dine point og missioner">
         <div class="sky">
           <div class="sun" aria-hidden="true"></div>
           <div class="cloud cloud-one" aria-hidden="true"></div>
@@ -27,22 +27,28 @@
           <div class="rainbow" aria-hidden="true"></div>
         </div>
 
-        <div class="world" id="world">
+        <div class="world village" id="world">
+          <div class="path" aria-hidden="true"></div>
+          <div class="house house-one" aria-hidden="true"><span></span></div>
+          <div class="house house-two" aria-hidden="true"><span></span></div>
+          <div class="house house-three" aria-hidden="true"><span></span></div>
           <div class="tree tree-left" aria-hidden="true"></div>
           <div class="tree tree-right" aria-hidden="true"></div>
-          <div class="person" aria-label="Et menneske i verdenen">
-            <span class="face" id="person-face">🙂</span>
-          </div>
-          <div class="animal" aria-label="Et dyr i verdenen">
-            <span class="face" id="animal-face">🐶</span>
-          </div>
-          <div class="bench" aria-hidden="true"></div>
-          <div class="person person-helper" aria-label="Et menneske, der viser omsorg"><span class="face">🤗</span></div>
-          <div class="animal animal-friend" aria-label="Et trygt dyr i verdenen"><span class="face">🐇</span></div>
-          <div class="butterfly butterfly-one" aria-hidden="true">🦋</div>
-          <div class="butterfly butterfly-two" aria-hidden="true">🦋</div>
-          <div class="heart heart-one" aria-hidden="true">♥</div>
-          <div class="heart heart-two" aria-hidden="true">♥</div>
+          <div class="tree tree-small" aria-hidden="true"></div>
+
+          <button type="button" class="resident resident-olsen" data-resident="olsen" aria-label="Åbn nærbillede af Fru Olsen">
+            <span class="resident-face">👵</span><span class="resident-label">Fru Olsen</span>
+          </button>
+          <button type="button" class="resident resident-hansen" data-resident="hansen" aria-label="Åbn nærbillede af Hr. Hansen">
+            <span class="resident-face">👨</span><span class="resident-label">Hr. Hansen</span>
+          </button>
+          <button type="button" class="resident resident-buster" data-resident="buster" aria-label="Åbn nærbillede af Hunden Buster">
+            <span class="resident-face">🐶</span><span class="resident-label">Buster</span>
+          </button>
+
+          <div class="villager villager-friend" aria-hidden="true">🧒</div>
+          <div class="animal animal-cat" aria-hidden="true">🐈</div>
+          <div class="animal animal-bird" aria-hidden="true">🐦</div>
           <div class="flower flower-one" aria-hidden="true">✿</div>
           <div class="flower flower-two" aria-hidden="true">✿</div>
           <div class="flower flower-three" aria-hidden="true">✿</div>
@@ -51,6 +57,19 @@
         </div>
 
         <p id="world-message" class="world-message">Start roligt. Hver lille handling tæller.</p>
+        <div id="village-celebration" class="village-celebration" aria-live="polite"></div>
+      </section>
+
+      <section class="resident-panel" id="resident-panel" hidden aria-live="polite" aria-label="Nærbillede af beboer">
+        <button type="button" class="resident-panel-close" id="resident-panel-close">Luk ×</button>
+        <h2 id="resident-name">Beboer</h2>
+        <p id="resident-story"></p>
+        <dl class="resident-details">
+          <div><dt>Aktuelt humør</dt><dd id="resident-mood"></dd></div>
+          <div><dt>Personlig mission</dt><dd id="resident-mission"></dd></div>
+          <div><dt>Fremdrift</dt><dd id="resident-progress"></dd></div>
+          <div><dt>Næste udviklingstrin</dt><dd id="resident-missing"></dd></div>
+        </dl>
       </section>
 
       <section class="activities" aria-label="Aktiviteter">
@@ -83,7 +102,7 @@
         <article class="activity-card">
           <div>
             <h2>Åndedrætsøvelse</h2>
-            <p>Vælg en øvelse. Du får 10 point, når hele øvelsen er gennemført.</p>
+            <p>Vælg en øvelse. Du får 5 point pr. fuldført runde. Øvelsen fortsætter, indtil du trykker Stop.</p>
           </div>
 
           <fieldset class="breathing-options">
@@ -93,8 +112,12 @@
           </fieldset>
 
           <div class="timer-card" aria-live="polite">
-            <span id="breathing-phase">Vælg en øvelse og tryk start.</span>
-            <strong><span id="breathing-seconds">0</span> sek.</strong>
+            <span>Valgt øvelse: <strong id="breathing-exercise-name">Ingen øvelse i gang</strong></span>
+            <span>Aktuel fase: <strong id="breathing-phase">Vælg en øvelse og tryk start.</strong></span>
+            <strong><span id="breathing-seconds">0</span> sek. tilbage</strong>
+            <span>Fuldførte runder i sessionen: <strong id="breathing-rounds-session">0</strong></span>
+            <span>Point i sessionen: <strong id="breathing-points-session">0</strong></span>
+            <label class="voice-note"><input type="checkbox" disabled /> Stemmevejledning – kommer senere</label>
           </div>
 
           <div class="button-row">
