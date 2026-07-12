@@ -1,11 +1,24 @@
+const POINTS_STORAGE_KEY = 'oneup-points';
+
 const pointsElement = document.querySelector('#points');
 const worldElement = document.querySelector('#world');
 const worldMessageElement = document.querySelector('#world-message');
 const personFaceElement = document.querySelector('#person-face');
 const animalFaceElement = document.querySelector('#animal-face');
 const buttons = document.querySelectorAll('.complete-button');
+const resetButton = document.querySelector('#reset-points');
 
-let points = 0;
+function readSavedPoints() {
+  const savedPoints = Number(localStorage.getItem(POINTS_STORAGE_KEY));
+
+  return Number.isInteger(savedPoints) && savedPoints >= 0 ? savedPoints : 0;
+}
+
+function savePoints() {
+  localStorage.setItem(POINTS_STORAGE_KEY, String(points));
+}
+
+let points = readSavedPoints();
 
 const worldLevels = [
   {
@@ -68,8 +81,21 @@ function updateWorld() {
 buttons.forEach((button) => {
   button.addEventListener('click', () => {
     points += 10;
+    savePoints();
     updateWorld();
   });
+});
+
+resetButton.addEventListener('click', () => {
+  const shouldReset = window.confirm('Er du sikker på, at du vil nulstille dine point?');
+
+  if (!shouldReset) {
+    return;
+  }
+
+  points = 0;
+  savePoints();
+  updateWorld();
 });
 
 updateWorld();
