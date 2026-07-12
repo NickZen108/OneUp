@@ -940,3 +940,52 @@ h1 {
   .mission-page, .profile-page { grid-column: 1 / -1; margin-top: 0; }
   .bottom-nav { width: min(calc(100% - 2rem), 58rem); }
 }
+
+.info-box {
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 240, 186, 0.6);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.resident { cursor: pointer; border: 0; }
+.resident:focus-visible { outline: 0.22rem solid #fff0ba; outline-offset: 0.18rem; }
+.resident-happy .resident-face { filter: drop-shadow(0 0 0.6rem rgba(255, 240, 186, 0.95)); }
+
+.resident-panel,
+.mission-page,
+.profile-page,
+.development-card {
+  margin-top: 1rem;
+  padding: 1.2rem;
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+}
+
+.resident-panel.open { animation: warm-pop 260ms ease-out; }
+.resident-panel-close { float: right; border: 0; border-radius: 999px; padding: 0.55rem 0.8rem; background: #fff0ba; font-weight: 900; cursor: pointer; }
+.resident-details { display: grid; gap: 0.7rem; margin: 1rem 0; }
+.resident-details div { padding: 0.8rem; border-radius: 1rem; background: rgba(232, 251, 243, 0.8); }
+.resident-details dt { font-weight: 900; }
+.resident-details dd { margin: 0.2rem 0 0; }
+
+.mission-list { display: grid; gap: 1rem; }
+.mission-card { padding: 1rem; border-radius: 1.4rem; background: rgba(255,255,255,0.78); border: 0.15rem solid rgba(255,181,138,0.35); }
+.mission-card.active { border-color: var(--coral); box-shadow: 0 0.8rem 1.4rem rgba(255,127,127,0.18); }
+.mission-card progress, #active-mission-activity progress { width: 100%; height: 0.9rem; accent-color: var(--green); }
+.mission-missing { font-weight: 900; color: #8b6f54; }
+
+.profile-form { display: grid; gap: 0.8rem; }
+.profile-form label { display: grid; gap: 0.35rem; font-weight: 800; }
+.profile-form input, .profile-form select, #bank-target { border: 0.16rem solid rgba(49,64,79,0.16); border-radius: 0.9rem; padding: 0.75rem; }
+
+.village-celebration.show::after {
+  content: "  ♡ ✨ ♡";
+}
+
+@keyframes warm-pop {
+  from { opacity: 0; transform: translateY(0.5rem) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
