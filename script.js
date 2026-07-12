@@ -1,5 +1,7 @@
 const POINTS_STORAGE_KEY = 'oneupPoints';
 const STEP_PROGRESS_STORAGE_KEY = 'oneupStepProgress';
+const DAILY_HISTORY_STORAGE_KEY = 'oneupDailyHistory';
+const HIGH_STEP_WARNING_LIMIT = 60000;
 const POINTS_PER_STEP_BLOCK = 1;
 const STEPS_PER_POINT_BLOCK = 100;
 const BREATHING_POINTS = 10;
@@ -20,6 +22,13 @@ const breathingPhaseElement = document.querySelector('#breathing-phase');
 const breathingSecondsElement = document.querySelector('#breathing-seconds');
 const breathingStartButton = document.querySelector('#start-breathing');
 const breathingStopButton = document.querySelector('#stop-breathing');
+const developmentStepsTodayElement = document.querySelector('#development-steps-today');
+const developmentBreathingTodayElement = document.querySelector('#development-breathing-today');
+const developmentPointsTodayElement = document.querySelector('#development-points-today');
+const developmentTotalPointsElement = document.querySelector('#development-total-points');
+const currentStreakElement = document.querySelector('#current-streak');
+const longestStreakElement = document.querySelector('#longest-streak');
+const historyListElement = document.querySelector('#history-list');
 
 function getTodayKey() {
   const now = typeof window.__oneUpNow === 'function' ? window.__oneUpNow() : new Date();
@@ -43,7 +52,81 @@ function savePoints() {
   localStorage.setItem(POINTS_STORAGE_KEY, String(points));
 }
 
+
+function createEmptyDailyRecord(date) {
+  return {
+    date,
+    steps: 0,
+    stepPoints: 0,
+    boxBreathingCount: 0,
+    breathing478Count: 0,
+    totalPoints: 0,
+  };
+}
+
+function normalizeDailyRecord(record, date) {
+  const dailyRecord = createEmptyDailyRecord(date);
+
+  if (!record || typeof record !== 'object') {
+    return dailyRecord;
+  }
+
+  const steps = Math.max(0, Math.floor(Number(record.steps) || 0));
+  const stepPoints = Math.max(0, Math.floor(Number(record.stepPoints ?? record.points) || 0));
+  const boxBreathingCount = Math.max(0, Math.floor(Number(record.boxBreathingCount) || 0));
+  const breathing478Count = Math.max(0, Math.floor(Number(record.breathing478Count) || 0));
+  const breathingPoints = (boxBreathingCount + breathing478Count) * BREATHING_POINTS;
+  const totalPoints = Math.max(0, Math.floor(Number(record.totalPoints) || (stepPoints + breathingPoints)));
+
+  return {
+    date,
+    steps,
+    stepPoints,
+    boxBreathingCount,
+    breathing478Count,
+    totalPoints,
+  };
+}
+
+function readDailyHistory() {
+  const today = getTodayKey();
+  let history = {};
+
+  try {
+    const savedHistory = JSON.parse(localStorage.getItem(DAILY_HISTORY_STORAGE_KEY));
+
+    if (savedHistory && typeof savedHistory === 'object' && !Array.isArray(savedHistory)) {
+      history = Object.fromEntries(
+        Object.entries(savedHistory).map(([date, record]) => [date, normalizeDailyRecord(record, date)]),
+      );
+    }
+  } catch {
+    history = {};
+  }
+
+  if (!history[today]) {
+    history[today] = createEmptyDailyRecord(today);
+  }
+
+  return history;
+}
+
+function saveDailyHistory() {
+  localStorage.setItem(DAILY_HISTORY_STORAGE_KEY, JSON.stringify(dailyHistory));
+}
+
+function getTodayRecord() {
+  const today = getTodayKey();
+
+  if (!dailyHistory[today]) {
+    dailyHistory[today] = createEmptyDailyRecord(today);
+  }
+
+  return dailyHistory[today];
+}
+
 function readStepProgress() {
+
   const today = getTodayKey();
   const fallbackProgress = {
     date: today,
@@ -78,7 +161,17 @@ function saveStepProgress() {
   localStorage.setItem(STEP_PROGRESS_STORAGE_KEY, JSON.stringify(stepProgress));
 }
 
+function syncTodayRecordFromStepProgress() {
+  const todayRecord = getTodayRecord();
+
+  todayRecord.steps = stepProgress.steps;
+  todayRecord.stepPoints = stepProgress.points;
+  todayRecord.totalPoints = todayRecord.stepPoints + ((todayRecord.boxBreathingCount + todayRecord.breathing478Count) * BREATHING_POINTS);
+  saveDailyHistory();
+}
+
 let points = readSavedPoints();
+let dailyHistory = readDailyHistory();
 let stepProgress = readStepProgress();
 let breathingTimerId = null;
 let breathingExercise = null;
@@ -181,6 +274,78 @@ function updateStepView() {
     : STEPS_PER_POINT_BLOCK - stepProgress.remainder;
 }
 
+function getBreathingCount(record) {
+  return record.boxBreathingCount + record.breathing478Count;
+}
+
+function isActiveDay(record) {
+  return record.steps >= 1000 || getBreathingCount(record) > 0;
+}
+
+function addDays(dateText, dayCount) {
+  const date = new Date(`${dateText}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + dayCount);
+  return date.toISOString().slice(0, 10);
+}
+
+function formatStreak(dayCount) {
+  return `${dayCount} ${dayCount === 1 ? 'dag' : 'dage'}`;
+}
+
+function calculateStreaks() {
+  const dates = Object.keys(dailyHistory).sort();
+  let longest = 0;
+  let run = 0;
+  let previousDate = null;
+
+  dates.forEach((date) => {
+    if (!isActiveDay(dailyHistory[date])) {
+      run = 0;
+      previousDate = date;
+      return;
+    }
+
+    run = previousDate && addDays(previousDate, 1) === date ? run + 1 : 1;
+    longest = Math.max(longest, run);
+    previousDate = date;
+  });
+
+  let current = 0;
+  let date = getTodayKey();
+  while (dailyHistory[date] && isActiveDay(dailyHistory[date])) {
+    current += 1;
+    date = addDays(date, -1);
+  }
+
+  return { current, longest };
+}
+
+function updateDevelopmentView() {
+  const todayRecord = getTodayRecord();
+  const streaks = calculateStreaks();
+
+  developmentStepsTodayElement.textContent = todayRecord.steps;
+  developmentBreathingTodayElement.textContent = getBreathingCount(todayRecord);
+  developmentPointsTodayElement.textContent = todayRecord.totalPoints;
+  developmentTotalPointsElement.textContent = points;
+  currentStreakElement.textContent = formatStreak(streaks.current);
+  longestStreakElement.textContent = formatStreak(streaks.longest);
+
+  historyListElement.textContent = '';
+  if (historyListElement.children) {
+    historyListElement.children.length = 0;
+  }
+
+  for (let index = 6; index >= 0; index -= 1) {
+    const date = addDays(getTodayKey(), -index);
+    const record = dailyHistory[date] || createEmptyDailyRecord(date);
+    const item = document.createElement('li');
+    const dayName = new Intl.DateTimeFormat('da-DK', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(new Date(`${date}T12:00:00.000Z`));
+    item.innerHTML = `<span>${dayName}</span><strong>${record.steps} skridt</strong><span>${getBreathingCount(record)} øvelser</span><strong>${record.totalPoints} point</strong>`;
+    historyListElement.appendChild(item);
+  }
+}
+
 function refreshStepDate() {
   const today = getTodayKey();
 
@@ -192,6 +357,7 @@ function refreshStepDate() {
       remainder: 0,
     };
     saveStepProgress();
+    syncTodayRecordFromStepProgress();
   }
 }
 
@@ -203,6 +369,15 @@ function updateDailySteps(totalSteps) {
   refreshStepDate();
 
   const safeSteps = Math.max(0, Math.floor(Number(totalSteps) || 0));
+  if (safeSteps > HIGH_STEP_WARNING_LIMIT) {
+    const shouldSaveHighSteps = window.confirm('Det er et usædvanligt højt antal skridt. Er du sikker på, at tallet er korrekt?');
+
+    if (!shouldSaveHighSteps) {
+      stepInput.value = stepProgress.steps;
+      return;
+    }
+  }
+
   const newStepPoints = calculateStepPoints(safeSteps);
   const pointChange = newStepPoints - stepProgress.points;
 
@@ -216,14 +391,17 @@ function updateDailySteps(totalSteps) {
 
   savePoints();
   saveStepProgress();
+  syncTodayRecordFromStepProgress();
   updateWorld();
   updateStepView();
+  updateDevelopmentView();
 }
 
 function addActivityPoints(pointAmount) {
   points = Math.max(0, points + pointAmount);
   savePoints();
   updateWorld();
+  updateDevelopmentView();
 }
 
 function getSelectedBreathingExercise() {
@@ -250,6 +428,14 @@ function resetBreathingTimer(message = 'Vælg en øvelse og tryk start.') {
 
 function finishBreathingExercise() {
   window.clearInterval(breathingTimerId);
+  const todayRecord = getTodayRecord();
+  if (breathingExercise === breathingExercises['478']) {
+    todayRecord.breathing478Count += 1;
+  } else {
+    todayRecord.boxBreathingCount += 1;
+  }
+  todayRecord.totalPoints += BREATHING_POINTS;
+  saveDailyHistory();
   addActivityPoints(BREATHING_POINTS);
   resetBreathingTimer('Godt gået! Du gennemførte øvelsen og fik 10 point.');
 }
@@ -274,6 +460,10 @@ function tickBreathingTimer() {
 }
 
 function startBreathingExercise() {
+  refreshStepDate();
+  updateStepView();
+  updateDevelopmentView();
+
   if (breathingTimerId !== null) {
     window.clearInterval(breathingTimerId);
   }
@@ -317,11 +507,17 @@ resetButton.addEventListener('click', () => {
   localStorage.removeItem(POINTS_STORAGE_KEY);
   localStorage.removeItem(STEP_PROGRESS_STORAGE_KEY);
   updateWorld();
+  localStorage.removeItem(DAILY_HISTORY_STORAGE_KEY);
+  dailyHistory = {};
+  syncTodayRecordFromStepProgress();
   updateStepView();
+  updateDevelopmentView();
   resetBreathingTimer();
 });
 
 refreshStepDate();
+syncTodayRecordFromStepProgress();
 updateWorld();
 updateStepView();
+updateDevelopmentView();
 resetBreathingTimer();

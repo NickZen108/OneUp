@@ -17,8 +17,13 @@ function createElement(extra = {}) {
         this.values[name] = value;
       },
     },
+    children: [],
+    innerHTML: '',
     addEventListener(eventName, handler) {
       listeners[eventName] = handler;
+    },
+    appendChild(child) {
+      this.children.push(child);
     },
     ...extra,
   };
@@ -42,11 +47,19 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   const breathingSeconds = createElement();
   const breathingStart = createElement();
   const breathingStop = createElement();
+  const developmentStepsToday = createElement();
+  const developmentBreathingToday = createElement();
+  const developmentPointsToday = createElement();
+  const developmentTotalPoints = createElement();
+  const currentStreak = createElement();
+  const longestStreak = createElement();
+  const historyList = createElement();
   const root = createElement();
   const storage = existingStorage ?? new Map();
   const intervals = new Map();
   let nextIntervalId = 1;
   let currentToday = today;
+  let lastConfirmMessage = null;
 
   if (savedPoints !== null) {
     storage.set('oneupPoints', String(savedPoints));
@@ -54,6 +67,9 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
 
   const document = {
     documentElement: root,
+    createElement() {
+      return createElement();
+    },
     querySelector(selector) {
       return {
         '#points': points,
@@ -71,6 +87,13 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
         '#breathing-seconds': breathingSeconds,
         '#start-breathing': breathingStart,
         '#stop-breathing': breathingStop,
+        '#development-steps-today': developmentStepsToday,
+        '#development-breathing-today': developmentBreathingToday,
+        '#development-points-today': developmentPointsToday,
+        '#development-total-points': developmentTotalPoints,
+        '#current-streak': currentStreak,
+        '#longest-streak': longestStreak,
+        '#history-list': historyList,
       }[selector];
     },
     querySelectorAll(selector) {
@@ -95,7 +118,8 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
       __oneUpNow() {
         return new Date(`${currentToday}T12:00:00.000Z`);
       },
-      confirm() {
+      confirm(message) {
+        lastConfirmMessage = message;
         return confirmResult;
       },
       setInterval(handler) {
@@ -130,8 +154,18 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
     breathingSeconds,
     breathingStart,
     breathingStop,
+    developmentStepsToday,
+    developmentBreathingToday,
+    developmentPointsToday,
+    developmentTotalPoints,
+    currentStreak,
+    longestStreak,
+    historyList,
     root,
     storage,
+    get lastConfirmMessage() {
+      return lastConfirmMessage;
+    },
     setToday(newToday) {
       currentToday = newToday;
     },
@@ -305,4 +339,120 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   assert.equal(app.storage.has('oneupStepProgress'), false);
   assert.equal(app.world.className, 'world level-1');
   assert.equal(app.message.textContent, 'Niveau 1: Spire. Verdenen er stille, men håbet spirer stille frem.');
+}
+
+{
+  const app = loadApp({ savedPoints: 0 });
+
+  app.stepInput.value = '1500';
+  app.stepUpdate.listeners.click();
+  app.stepInput.value = '2600';
+  app.stepUpdate.listeners.click();
+
+  const history = JSON.parse(app.storage.get('oneupDailyHistory'));
+  assert.equal(history['2026-07-12'].steps, 2600);
+  assert.equal(history['2026-07-12'].stepPoints, 26);
+  assert.equal(history['2026-07-12'].totalPoints, 26);
+  assert.equal(app.developmentStepsToday.textContent, 2600);
+  assert.equal(app.developmentPointsToday.textContent, 26);
+  assert.equal(app.developmentTotalPoints.textContent, 26);
+}
+
+{
+  const app = loadApp({ savedPoints: 0 });
+
+  app.stepInput.value = '5000';
+  app.stepUpdate.listeners.click();
+  app.stepInput.value = '1200';
+  app.stepUpdate.listeners.click();
+
+  const history = JSON.parse(app.storage.get('oneupDailyHistory'));
+  assert.equal(app.points.textContent, 12);
+  assert.equal(history['2026-07-12'].steps, 1200);
+  assert.equal(history['2026-07-12'].stepPoints, 12);
+  assert.equal(history['2026-07-12'].totalPoints, 12);
+}
+
+{
+  const app = loadApp({ savedPoints: 0, confirmResult: false });
+
+  app.stepInput.value = '70000';
+  app.stepUpdate.listeners.click();
+
+  assert.match(app.lastConfirmMessage, /usædvanligt højt antal skridt/);
+  assert.equal(app.points.textContent, 0);
+  assert.equal(app.stepsToday.textContent, 0);
+}
+
+{
+  const app = loadApp({ savedPoints: 0, confirmResult: true });
+
+  app.stepInput.value = '70000';
+  app.stepUpdate.listeners.click();
+
+  assert.equal(app.points.textContent, 700);
+  assert.equal(app.stepsToday.textContent, 70000);
+}
+
+{
+  const app = loadApp({ savedPoints: 0 });
+
+  app.breathingStart.listeners.click();
+  app.tick(16);
+  app.boxChoice.checked = false;
+  app.breathing478Choice.checked = true;
+  app.breathingStart.listeners.click();
+  app.tick(19);
+
+  const history = JSON.parse(app.storage.get('oneupDailyHistory'));
+  assert.equal(history['2026-07-12'].boxBreathingCount, 1);
+  assert.equal(history['2026-07-12'].breathing478Count, 1);
+  assert.equal(history['2026-07-12'].totalPoints, 20);
+  assert.equal(app.developmentBreathingToday.textContent, 2);
+}
+
+{
+  const app = loadApp({ savedPoints: 0, today: '2026-07-10' });
+
+  app.stepInput.value = '1000';
+  app.stepUpdate.listeners.click();
+  app.setToday('2026-07-11');
+  app.stepInput.value = '1000';
+  app.stepUpdate.listeners.click();
+  app.setToday('2026-07-12');
+  app.breathingStart.listeners.click();
+  app.tick(16);
+
+  const history = JSON.parse(app.storage.get('oneupDailyHistory'));
+  assert.equal(history['2026-07-10'].steps, 1000);
+  assert.equal(history['2026-07-11'].steps, 1000);
+  assert.equal(history['2026-07-12'].boxBreathingCount, 1);
+  assert.equal(app.currentStreak.textContent, '3 dage');
+  assert.equal(app.longestStreak.textContent, '3 dage');
+  assert.equal(app.historyList.children.length, 7);
+}
+
+{
+  const firstSession = loadApp({ savedPoints: 7 });
+
+  firstSession.stepInput.value = '1100';
+  firstSession.stepUpdate.listeners.click();
+  firstSession.breathingStart.listeners.click();
+  firstSession.tick(16);
+
+  const reopenedSession = loadApp({ existingStorage: firstSession.storage });
+  assert.equal(reopenedSession.developmentStepsToday.textContent, 1100);
+  assert.equal(reopenedSession.developmentBreathingToday.textContent, 1);
+  assert.equal(reopenedSession.developmentPointsToday.textContent, 21);
+  assert.equal(reopenedSession.developmentTotalPoints.textContent, 28);
+}
+
+{
+  const storage = new Map();
+  storage.set('oneupPoints', '42');
+  const app = loadApp({ existingStorage: storage });
+
+  assert.equal(app.points.textContent, 42);
+  assert.equal(app.developmentTotalPoints.textContent, 42);
+  assert.ok(app.storage.get('oneupDailyHistory'));
 }
