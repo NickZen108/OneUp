@@ -1,0 +1,354 @@
+:root {
+  --cream: #fff7e8;
+  --peach: #ffb58a;
+  --coral: #ff7f7f;
+  --mint: #a8e6cf;
+  --green: #63c68b;
+  --blue: #9edbf2;
+  --purple: #b8a4ff;
+  --text: #31404f;
+  --white: #ffffff;
+  --shadow: 0 18px 45px rgba(122, 86, 53, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(255, 181, 138, 0.45), transparent 32rem),
+    linear-gradient(160deg, #fff7e8 0%, #fff0f4 45%, #e8fbf3 100%);
+}
+
+.app-shell {
+  width: min(100%, 31rem);
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.hero-card,
+.world-card,
+.activity-card {
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow);
+}
+
+.hero-card {
+  padding: 1.7rem;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #8b6f54;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(3rem, 18vw, 5rem);
+  letter-spacing: -0.08em;
+  color: var(--coral);
+  text-shadow: 0 0.25rem 0 #ffe0ce;
+}
+
+.subtitle {
+  margin: 0.15rem 0 1.3rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.points-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 999px;
+  background: #fff0ba;
+  border: 0.2rem solid #ffe17a;
+}
+
+.points-label {
+  font-weight: 800;
+}
+
+#points {
+  min-width: 3rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  color: var(--white);
+  background: var(--green);
+  font-size: 1.5rem;
+}
+
+.world-card {
+  overflow: hidden;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.sky {
+  position: relative;
+  height: 8rem;
+  border-radius: 1.5rem 1.5rem 0.7rem 0.7rem;
+  background: linear-gradient(#bfefff, #e9fbff);
+  overflow: hidden;
+}
+
+.sun {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: #ffd95e;
+  box-shadow: 0 0 2rem #ffeaa0;
+}
+
+.cloud {
+  position: absolute;
+  width: 4rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  bottom: 0.25rem;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.cloud::before {
+  left: 0.45rem;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.cloud::after {
+  right: 0.55rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.cloud-one {
+  top: 1.3rem;
+  left: 1rem;
+}
+
+.cloud-two {
+  top: 4rem;
+  right: 4.7rem;
+  transform: scale(0.8);
+}
+
+.rainbow {
+  position: absolute;
+  left: 50%;
+  bottom: -4.3rem;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  border: 0.8rem solid transparent;
+  border-top-color: rgba(255, 127, 127, var(--rainbow-strength, 0));
+  border-left-color: rgba(184, 164, 255, var(--rainbow-strength, 0));
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.world {
+  --beauty: 0;
+  --rainbow-strength: 0;
+  position: relative;
+  min-height: 10.5rem;
+  margin-top: -0.2rem;
+  border-radius: 0.7rem 0.7rem 1.5rem 1.5rem;
+  background:
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, var(--beauty)), transparent 4rem),
+    linear-gradient(#86d98d, #5fbd77);
+  overflow: hidden;
+}
+
+.world::before {
+  content: "";
+  position: absolute;
+  inset: auto -10% -2.2rem;
+  height: 7rem;
+  border-radius: 50% 50% 0 0;
+  background: #4ead66;
+}
+
+.tree {
+  position: absolute;
+  bottom: 3.7rem;
+  width: 1rem;
+  height: 3rem;
+  border-radius: 0.4rem;
+  background: #9a6a3b;
+}
+
+.tree::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2.1rem;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: #2f9f62;
+  transform: translateX(-50%);
+  filter: saturate(calc(0.8 + var(--beauty)));
+}
+
+.tree-left {
+  left: 2.2rem;
+}
+
+.tree-right {
+  right: 2.7rem;
+  transform: scale(0.82);
+}
+
+.person,
+.animal {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  transition: transform 250ms ease;
+}
+
+.person {
+  left: 38%;
+  bottom: 3.3rem;
+  width: 3.1rem;
+  height: 4.4rem;
+  border-radius: 1.4rem 1.4rem 1rem 1rem;
+  background: var(--purple);
+}
+
+.person::before {
+  content: "";
+  position: absolute;
+  top: -1.55rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  background: #ffd3ad;
+}
+
+.animal {
+  right: 26%;
+  bottom: 3.1rem;
+  width: 3.7rem;
+  height: 2.5rem;
+  border-radius: 1.2rem;
+  background: #fff5de;
+}
+
+.face {
+  position: relative;
+  z-index: 1;
+  font-size: 1.7rem;
+}
+
+.flower {
+  position: absolute;
+  bottom: 3rem;
+  color: #ff6ca8;
+  font-size: calc(1rem + var(--beauty) * 0.8rem);
+  opacity: calc(0.25 + var(--beauty));
+}
+
+.flower-one { left: 18%; }
+.flower-two { left: 58%; color: #ffe45e; }
+.flower-three { right: 12%; color: #ff9f43; }
+
+.world-message {
+  margin: 1rem 0 0.2rem;
+  text-align: center;
+  font-weight: 800;
+}
+
+.activities {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.activity-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.activity-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.activity-card p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.complete-button {
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  padding: 1rem 1.2rem;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--coral), var(--peach));
+  font-size: 1rem;
+  font-weight: 900;
+  box-shadow: 0 0.7rem 1.2rem rgba(255, 127, 127, 0.28);
+  cursor: pointer;
+}
+
+.complete-button:active {
+  transform: translateY(0.12rem) scale(0.99);
+}
+
+.world.level-1 .person,
+.world.level-1 .animal {
+  transform: translateY(-0.2rem);
+}
+
+.world.level-2 .person,
+.world.level-2 .animal {
+  transform: translateY(-0.35rem) scale(1.05);
+}
+
+.world.level-3 .person,
+.world.level-3 .animal {
+  transform: translateY(-0.5rem) scale(1.1);
+}
+
+@media (min-width: 42rem) {
+  .app-shell {
+    width: min(100%, 58rem);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .activities {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .world-card,
+  .activities {
+    margin-top: 0;
+  }
+}
