@@ -73,15 +73,49 @@ function readVillage() { const saved = readJson(VILLAGE_STORAGE_KEY, {}); return
 function saveVillage() { saveJson(VILLAGE_STORAGE_KEY, village); }
 function getResidentMood(id) { const r = village[id]; const t = residentTemplates[id]; return t.mood[Math.min(t.mood.length - 1, r.level)]; }
 
-function createMission(id, old = {}) { const t = residentTemplates[id]; return { id, status: old.status || 'available', progress: safeNumber(old.progress), completedCount: safeNumber(old.completedCount), allocations: Array.isArray(old.allocations) ? old.allocations : [], bonusAwarded: !!old.bonusAwarded, completedAt: old.completedAt || null }; }
+function createMission(id, old = {}) { const t = residentTemplates[id]; return { id, status: old.status || 'available', progress: safeNumber(old.progress), completedCount: safeNumber(old.completedCount), allocations: Array.isArray(old.allocations) ? old.allocations : [], bonusAwarded: !!old.bonusAwarded, completedAt: old.completedAt || null, startedMessage: old.startedMessage || '' }; }
 function readMissions() { const saved = readJson(MISSION_STORAGE_KEY, {}); return { activeId: saved?.activeId || null, lastCompletedId: saved?.lastCompletedId || null, items: Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, createMission(id, saved?.items?.[id] || saved?.[id])])) }; }
 function saveMissions() { saveJson(MISSION_STORAGE_KEY, missions); }
 function getActiveMission() { return missions.activeId ? missions.items[missions.activeId] : null; }
 function missionProgressText(id) { const t = residentTemplates[id]; const m = missions.items[id]; return `${Math.min(m.progress, t.goal).toLocaleString('da-DK')} / ${t.goal.toLocaleString('da-DK')} ${t.type === 'steps' ? 'skridt' : 'runder'}`; }
-function getMissionMessage(id) { const progress = missions.items[id].progress; const t = residentTemplates[id]; if (progress >= t.goal) return missionMessages[id].at(-1)[1]; return missionMessages[id].find(([limit]) => progress < limit)?.[1] || missionMessages[id].at(-1)[1]; }
+function getMissionMessage(id) { const m = missions.items[id]; const progress = m.progress; const t = residentTemplates[id]; if (m.status === 'active' && progress === 0 && m.startedMessage) return m.startedMessage; if (progress >= t.goal) return missionMessages[id].at(-1)[1]; return missionMessages[id].find(([limit]) => progress < limit)?.[1] || missionMessages[id].at(-1)[1]; }
 function missionMissingText(id) { const t = residentTemplates[id], m = missions.items[id]; const left = Math.max(0, t.goal - m.progress); return left ? `${left.toLocaleString('da-DK')} ${t.type === 'steps' ? 'skridt' : 'runder'} mangler.` : 'Målet er nået. Tak for hjælpen.'; }
 function setMissionStatus(id, status) { if (!missions.items[id]) return; if (status === 'active' && missions.items[id].progress >= residentTemplates[id].goal) { missions.items[id].progress = 0; missions.items[id].allocations = []; missions.items[id].bonusAwarded = false; missions.items[id].completedAt = null; } if (missions.activeId && missions.activeId !== id && status === 'active') missions.items[missions.activeId].status = 'paused'; missions.activeId = status === 'active' ? id : (missions.activeId === id ? null : missions.activeId); missions.items[id].status = status; saveMissions(); updateAllViews(); }
-function startMission(id, mode = 'pause') { const current = getActiveMission(); const t = residentTemplates[id]; if (!t) return; if (current && current.id !== id) { const currentName = residentTemplates[current.id].mission; const ok = mode === 'switch' ? true : window.confirm?.(`Der er allerede en aktiv mission: ${currentName}.\n\nOK: Pause nuværende og start den nye.\nAnnuller: Behold nuværende mission.`); if (!ok) { showCelebration(`Du beholder ${currentName}.`); return; } current.status = mode === 'switch' ? 'cancelled' : 'paused'; } setMissionStatus(id, 'active'); showCelebration(t.startMessage); logEvent('mission-start', t.startMessage, { missionId: id }); }
+function askMissionChange(currentId, nextId, requestedMode = 'pause') {
+  if (requestedMode === 'switch') return Promise.resolve('switch');
+  const current = residentTemplates[currentId], next = residentTemplates[nextId];
+  return new Promise((resolve) => {
+    const dialog = document.createElement('div');
+    dialog.className = 'mission-confirm';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.innerHTML = `<div class="mission-confirm-box"><h2>Der er allerede en aktiv mission</h2><p>${current.mission} er aktiv. Hvad vil du gøre med ${next.mission}?</p><div class="button-row"><button type="button" data-choice="keep">Behold nuværende mission</button><button type="button" data-choice="pause">Pause nuværende og start ny</button><button type="button" data-choice="switch">Skift helt til ny</button></div></div>`;
+    dialog.addEventListener('click', (event) => {
+      const choice = event.target.closest?.('[data-choice]')?.dataset.choice;
+      if (!choice) return;
+      dialog.remove();
+      resolve(choice);
+    });
+    (document.body || document.documentElement).appendChild(dialog);
+  });
+}
+async function startMission(id, mode = 'pause', options = {}) {
+  const current = getActiveMission();
+  const t = residentTemplates[id];
+  if (!t || !missions.items[id]) return false;
+  if (current && current.id !== id) {
+    const choice = await askMissionChange(current.id, id, mode);
+    if (choice === 'keep') { showCelebration(`Du beholder ${residentTemplates[current.id].mission}.`); return false; }
+    current.status = choice === 'switch' ? 'cancelled' : 'paused';
+  }
+  missions.items[id].startedMessage = t.startMessage;
+  setMissionStatus(id, 'active');
+  showCelebration(t.startMessage);
+  logEvent('mission-start', t.startMessage, { missionId: id });
+  if (options.closePanel) closeResidentPanel();
+  if (options.goToActivity) showPage('activity');
+  return true;
+}
 function pauseMission(id) { if (missions.items[id]?.status === 'active') setMissionStatus(id, 'paused'); }
 function resumeMission(id) { startMission(id, 'pause'); }
 function cancelMission(id) { if (!missions.items[id]) return; if (missions.activeId === id) missions.activeId = null; missions.items[id].status = 'cancelled'; logEvent('mission-cancelled', 'Missionen er afsluttet. Den indsats, du allerede gjorde, tæller stadig.', { missionId: id }); saveMissions(); showCelebration('Missionen er afsluttet. Den indsats, du allerede gjorde, tæller stadig.'); updateAllViews(); }
@@ -151,7 +185,7 @@ function tickBreathingTimer() { if (!breathingSession) return; breathingSession.
 function startBreathingExercise() { refreshStepDate(); if (breathingTimerId !== null) window.clearInterval(breathingTimerId); const key = getSelectedBreathingKey(); breathingSession = { key, exercise: breathingExercises[key], phaseIndex: 0, secondsLeft: breathingExercises[key].phases[0].seconds, rounds: 0 }; updateBreathingView(); breathingTimerId = window.setInterval(tickBreathingTimer, 1000); }
 function stopBreathingExercise() { if (breathingTimerId !== null) window.clearInterval(breathingTimerId); breathingTimerId = null; const earned = breathingSession ? breathingSession.rounds * BREATHING_POINTS : 0; breathingSession = null; updateBreathingView(`Sessionen blev stoppet. Du beholder ${earned} point fra fuldførte runder.`); }
 function missionCardHtml(id) { const t = residentTemplates[id], m = missions.items[id], active = missions.activeId === id; return `<article class="mission-card ${active ? 'active' : ''}"><h3>${t.emoji} ${t.mission}</h3><p>${t.story}</p><progress max="${t.goal}" value="${Math.min(m.progress, t.goal)}"></progress><strong>${missionProgressText(id)}</strong><p>${getMissionMessage(id)}</p><p class="mission-missing">${missionMissingText(id)}</p><div class="button-row"><button data-mission-action="start" data-mission-id="${id}">${active ? 'Aktiv mission' : (m.status === 'paused' ? 'Fortsæt mission' : t.startLabel)}</button><button data-mission-action="pause" data-mission-id="${id}">Pause</button><button data-mission-action="switch" data-mission-id="${id}">Skift helt hertil</button><button data-mission-action="cancel" data-mission-id="${id}">Annullér</button></div></article>`; }
-function updateMissionsView() { if (elements.activeMissionActivity) { const active = getActiveMission(); elements.activeMissionActivity.innerHTML = active ? `<strong>Aktiv mission: ${residentTemplates[active.id].mission}</strong><br><progress max="${residentTemplates[active.id].goal}" value="${Math.min(active.progress, residentTemplates[active.id].goal)}"></progress><br>${missionProgressText(active.id)}<br>${getMissionMessage(active.id)}<br>${missionMissingText(active.id)}<div class="button-row"><button data-mission-action="pause" data-mission-id="${active.id}">Pause</button><button data-nav="missions">Skift mission</button></div>` : 'Ingen aktiv mission lige nu. Tryk på en beboer eller vælg på Missioner-siden.'; } if (elements.missionList) { const ids = Object.keys(missions.items).sort((a, b) => (missions.activeId === b) - (missions.activeId === a)); elements.missionList.innerHTML = ids.map(missionCardHtml).join('') + '<p class="info-box">Flere aktiviteter som søvn, løb, cykling og naturture kommer senere.</p>'; } }
+function updateMissionsView() { if (elements.activeMissionActivity) { const active = getActiveMission(); elements.activeMissionActivity.innerHTML = active ? `<strong>Mission aktiv: ${residentTemplates[active.id].mission}</strong><br><progress max="${residentTemplates[active.id].goal}" value="${Math.min(active.progress, residentTemplates[active.id].goal)}"></progress><br>${missionProgressText(active.id)}<br>${getMissionMessage(active.id)}<br>${missionMissingText(active.id)}<div class="button-row"><button data-mission-action="pause" data-mission-id="${active.id}">Pause</button><button data-nav="missions">Skift mission</button></div>` : 'Ingen aktiv mission lige nu. Tryk på en beboer eller vælg på Missioner-siden.'; } if (elements.missionList) { const ids = Object.keys(missions.items).sort((a, b) => (missions.activeId === b) - (missions.activeId === a)); elements.missionList.innerHTML = ids.map(missionCardHtml).join('') + '<p class="info-box">Flere aktiviteter som søvn, løb, cykling og naturture kommer senere.</p>'; } }
 function updateBankView() { const total = bankTotal(); setText(elements.bankTotal, total.toLocaleString('da-DK')); if (elements.bankEntries) elements.bankEntries.innerHTML = stepBank.length ? stepBank.map((e) => `<li>${e.steps.toLocaleString('da-DK')} skridt fra ${e.source} (${e.date}) – udløber om ${Math.max(0, BANK_TTL_DAYS - daysBetween(e.date, getTodayKey()))} dage</li>`).join('') : '<li>Ingen ufordelte skridt. Ældste skridt bruges først, når du donerer.</li>'; }
 function updateAllViews() { updateWorld(); updateStepView(); updateDevelopmentView(); updateMissionsView(); updateBankView(); updateBreathingView(); }
 function openResidentPanel(id) { const t = residentTemplates[id], panel = elements.residentPanel; if (!t || !panel) return; setText($('#resident-name'), t.fullName || t.name); setText($('#resident-story'), t.story); setText($('#resident-mood'), getResidentMood(id)); setText($('#resident-mission'), t.mission); setText($('#resident-progress'), missionProgressText(id)); setText($('#resident-missing'), missionMissingText(id)); const action = $('#resident-primary-action'); if (action) { action.dataset.missionId = id; action.textContent = missions.items[id].status === 'paused' ? 'Fortsæt mission' : t.startLabel; } const pause = $('#resident-pause-action'); if (pause) { pause.dataset.missionId = id; pause.hidden = missions.activeId !== id; } setText($('#resident-status-message'), getMissionMessage(id)); panel.hidden = false; panel.classList?.add('open'); }
@@ -167,9 +201,9 @@ elements.breathingStop?.addEventListener('click', stopBreathingExercise);
 $$('[data-resident]').forEach((el) => el.addEventListener('click', () => openResidentPanel(el.dataset.resident)));
 $('#resident-panel-close')?.addEventListener('click', closeResidentPanel);
 $$('.bottom-nav button').forEach((b) => b.addEventListener('click', () => showPage(b.dataset.nav)));
-document.addEventListener?.('click', (event) => { const btn = event.target.closest?.('[data-mission-action]'); if (btn) { const a = btn.dataset.missionAction, id = btn.dataset.missionId; if (a === 'start') startMission(id, 'pause'); else if (a === 'switch') startMission(id, 'switch'); else if (a === 'pause') pauseMission(id); else if (a === 'cancel') cancelMission(id); else setMissionStatus(id, a); } });
+document.addEventListener?.('click', (event) => { try { const nav = event.target.closest?.('[data-nav]'); if (nav) showPage(nav.dataset.nav); const btn = event.target.closest?.('[data-mission-action]'); if (btn) { const a = btn.dataset.missionAction, id = btn.dataset.missionId; if (a === 'start') void startMission(id, 'pause'); else if (a === 'switch') void startMission(id, 'switch'); else if (a === 'pause') pauseMission(id); else if (a === 'cancel') cancelMission(id); else setMissionStatus(id, a); } } catch (error) { console.error('OneUp klik-handler fejlede', error); } });
 $('#donate-bank')?.addEventListener('click', donateFromBank);
-$('#resident-primary-action')?.addEventListener('click', (event) => startMission(event.target.dataset.missionId, 'pause'));
+$('#resident-primary-action')?.addEventListener('click', (event) => { event.preventDefault(); void startMission(event.currentTarget.dataset.missionId, 'pause', { closePanel: true, goToActivity: true }); });
 $('#resident-pause-action')?.addEventListener('click', (event) => pauseMission(event.target.dataset.missionId));
 $('#profile-form')?.addEventListener('submit', (event) => { event.preventDefault(); saveProfileFromForm(); });
 elements.reset?.addEventListener('click', () => { if (!window.confirm('Er du sikker på, at du vil nulstille dine point?')) return; points = 0; stepProgress = { date: getTodayKey(), steps: 0, points: 0, remainder: 0 }; village = Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, freshResident(id)])); missions = readMissions(); missions.items = Object.fromEntries(Object.keys(residentTemplates).map((id) => [id, createMission(id)])); missions.activeId = null; stepBank = []; localStorage.removeItem(POINTS_STORAGE_KEY); localStorage.removeItem(STEP_PROGRESS_STORAGE_KEY); localStorage.removeItem(DAILY_HISTORY_STORAGE_KEY); localStorage.removeItem(VILLAGE_STORAGE_KEY); localStorage.removeItem(MISSION_STORAGE_KEY); localStorage.removeItem(STEP_BANK_STORAGE_KEY); dailyHistory = {}; syncTodayRecordFromStepProgress(); saveMissions(); updateAllViews(); closeResidentPanel(); });
