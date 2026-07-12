@@ -379,3 +379,98 @@ h1 {
     margin-top: 0;
   }
 }
+
+.field-label,
+.breathing-options legend {
+  font-weight: 900;
+}
+
+.number-input {
+  width: 100%;
+  border: 0.16rem solid rgba(49, 64, 79, 0.16);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.progress-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.progress-list div,
+.timer-card {
+  padding: 0.85rem;
+  border-radius: 1rem;
+  background: rgba(255, 240, 186, 0.55);
+}
+
+.progress-list dt {
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.progress-list dd {
+  margin: 0.2rem 0 0;
+  color: var(--coral);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.breathing-options {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.breathing-options label {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.timer-card {
+  display: grid;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.timer-card span {
+  font-weight: 800;
+}
+
+.timer-card strong {
+  color: var(--green);
+  font-size: 1.8rem;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.secondary-button {
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  padding: 1rem 1.2rem;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  font-size: 1rem;
+  font-weight: 900;
+  box-shadow: 0 0.7rem 1.2rem rgba(158, 219, 242, 0.28);
+  cursor: pointer;
+}
+
+.secondary-button:active {
+  transform: translateY(0.12rem) scale(0.99);
+}
