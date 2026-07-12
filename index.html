@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OneUp – Gamify Your Health</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell" aria-labelledby="app-title">
+      <section class="hero-card">
+        <p class="eyebrow">Velkommen til din lille sundhedsverden</p>
+        <h1 id="app-title">OneUp</h1>
+        <p class="subtitle">Gamify Your Health</p>
+
+        <div class="points-card" aria-live="polite">
+          <span class="points-label">Dine point</span>
+          <strong id="points">0</strong>
+        </div>
+      </section>
+
+      <section class="world-card" aria-label="En lille verden, der vokser med dine point">
+        <div class="sky">
+          <div class="sun" aria-hidden="true"></div>
+          <div class="cloud cloud-one" aria-hidden="true"></div>
+          <div class="cloud cloud-two" aria-hidden="true"></div>
+          <div class="rainbow" aria-hidden="true"></div>
+        </div>
+
+        <div class="world" id="world">
+          <div class="tree tree-left" aria-hidden="true"></div>
+          <div class="tree tree-right" aria-hidden="true"></div>
+          <div class="person" aria-label="Et menneske i verdenen">
+            <span class="face" id="person-face">🙂</span>
+          </div>
+          <div class="animal" aria-label="Et dyr i verdenen">
+            <span class="face" id="animal-face">🐶</span>
+          </div>
+          <div class="flower flower-one" aria-hidden="true">✿</div>
+          <div class="flower flower-two" aria-hidden="true">✿</div>
+          <div class="flower flower-three" aria-hidden="true">✿</div>
+        </div>
+
+        <p id="world-message" class="world-message">Start roligt. Hver lille handling tæller.</p>
+      </section>
+
+      <section class="activities" aria-label="Aktiviteter">
+        <article class="activity-card">
+          <div>
+            <h2>Gå 1.000 skridt</h2>
+            <p>En lille gåtur kan give mere energi og lethed.</p>
+          </div>
+          <button type="button" class="complete-button">Jeg gjorde det</button>
+        </article>
+
+        <article class="activity-card">
+          <div>
+            <h2>Lav en 2-minutters åndedrætsøvelse</h2>
+            <p>Træk vejret langsomt og giv kroppen en venlig pause.</p>
+          </div>
+          <button type="button" class="complete-button">Jeg gjorde det</button>
+        </article>
+      </section>
+
+      <button type="button" class="reset-button" id="reset-points">Nulstil mine point</button>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
