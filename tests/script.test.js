@@ -463,3 +463,23 @@ function loadApp({ savedPoints = null, confirmResult = true, existingStorage = n
   assert.match(source, /stableClasses\.add\('village'\)/);
   assert.match(source, /scrollIntoView\?\.\(\{ behavior: 'smooth', block: 'start' \}\)/);
 }
+
+{
+  const source = fs.readFileSync('script.js', 'utf8');
+  assert.match(source, /function showPage\(page\)/);
+  assert.match(source, /page === 'village' && world/);
+  assert.match(source, /world\.classList\?\.add\('world', 'village'\)/);
+  assert.match(source, /if \(world\.style\?\.display === 'none'\) world\.style\.display = ''/);
+}
+
+{
+  const source = fs.readFileSync('script.js', 'utf8');
+  assert.match(source, /function findMissionDetailsElement\(id\)/);
+  assert.match(source, /function isElementReadyForScroll\(element\)/);
+  assert.match(source, /requestAnimationFrame/);
+  assert.match(source, /scrollIntoView\?\.\(\{ behavior: 'smooth', block: 'start' \}\)/);
+  assert.match(source, /console\.log\?\.\('mission valgt'/);
+  assert.match(source, /console\.log\?\.\('fanen skiftet'/);
+  assert.match(source, /console\.log\?\.\('detaljeelement fundet'/);
+  assert.match(source, /console\.log\?\.\('scroll udført'/);
+}

@@ -1013,8 +1013,8 @@ h1 {
 .mission-confirm-box .button-row { align-items: stretch; }
 
 .mission-card {
-  scroll-margin-top: 1rem;
-  scroll-margin-bottom: 7.5rem;
+  scroll-margin-top: 5.5rem;
+  scroll-margin-bottom: 8.5rem;
 }
 
 .mission-card-highlight {
