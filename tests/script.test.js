@@ -135,9 +135,9 @@ function load(storage = new Map()) {
   t.state.log.push({ id:'m1', date:'2026-07-13', activity:'meditation', value:12 });
   t.recalc();
   t.recalcCompetitions();
-  assert.equal(Math.round(t.competitionActivityScore(c,'steps',{id:'you',name:'Anna'},'2026-07-13')), 110);
-  assert.equal(t.competitionActivityScore(c,'meditation',{id:'you',name:'Anna'},'2026-07-13'), 120);
-  assert.equal(c.results.userScore, 114);
+  assert.equal(t.competitionActivityScore(c,'steps',{id:'you',name:'Anna'},'2026-07-13'), 100);
+  assert.equal(t.competitionActivityScore(c,'meditation',{id:'you',name:'Anna'},'2026-07-13'), 100);
+  assert.equal(c.results.userScore, 100);
   assert.equal(t.competitionLeaderboard(c).some(r => r.participant.id === 'bo'), true);
 }
 
@@ -147,7 +147,7 @@ function load(storage = new Map()) {
   const c = t.createCompetition({ type:'self', name:'Mental balance', activities:['breathing','meditation'], startDate:'2026-07-13', endDate:'2026-07-19' });
   assert.equal(c.participants.length, 1);
   assert.equal(c.type, 'self');
-  assert.equal(c.scoringMethod, 'goalPercent');
+  assert.equal(c.scoringMethod, 'configuredGoals');
   assert.equal(Object.values(c.weighting.weights).reduce((a,b)=>a+b,0), 100);
   t.archiveCompetition(c.id);
   assert.equal(c.status, 'archived');
@@ -207,8 +207,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.8.0');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 08.04');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.8.1');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 08.20');
 }
 
 {
@@ -224,4 +224,24 @@ function load(storage = new Map()) {
   assert.ok(html.includes('<span>Streak-beskyttelse</span>'));
   assert.ok(html.includes('<span>Brug automatisk streak-beskyttelse</span>'));
   assert.ok(html.includes('<span>Minimum søvnlængde</span>'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.scoreMoreIsBetter(30,30,60), 100);
+  assert.equal(t.scoreMoreIsBetter(45,30,60), 110);
+  assert.equal(t.scoreMoreIsBetter(60,30,60), 120);
+  assert.equal(t.scoreLessIsBetter(30,30,15), 100);
+  assert.equal(t.scoreLessIsBetter(15,30,15), 120);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  t.state.activitySettings.steps.goal = 9000;
+  const c = t.createCompetition({ name:'Gammel opsætning', activities:['steps'], startDate:'2026-07-13', endDate:'2026-07-20' });
+  assert.equal(c.activityGoals.steps.target, 9000);
+  assert.equal(t.state.activitySettings.steps.goal, 9000);
+  assert.ok(c.activityGoals.steps.migrationNotice.includes('tidligere standardmål'));
 }
