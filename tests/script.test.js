@@ -194,11 +194,21 @@ function load(storage = new Map()) {
   assert.ok(html.includes('Ingen aktive mål endnu.'));
 }
 
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.competitionActivityIds().length, 9);
+  assert.equal(t.sanitizeActivityIds(['screenfree','socialfree','unknown']).join(','), 'screenFreeBeforeBed,socialMediaFree');
+  const weights = t.defaultWeights(['steps','sleep','breathing']);
+  assert.equal(`${weights.steps},${weights.sleep},${weights.breathing}`, '33.34,33.33,33.33');
+}
+
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.7.1');
-  assert.equal(map['#app-build-label'].textContent, 'Bygget 13. juli 2026 kl. 07.50');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.8.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 08.04');
 }
 
 {
