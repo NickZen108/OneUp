@@ -49,3 +49,72 @@ function load(storage = new Map()) {
   assert.equal(context.window.__oneUpTest.pointsForEntry({ activity:'meditation', value:40 }), 30);
   assert.equal(context.window.__oneUpTest.pointsForEntry(sleep), 20);
 }
+
+{
+  const { context, storage } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; t.state.activitySettings[id].streakEnabled = false; });
+  t.state.activitySettings.sleep.enabled = true;
+  t.state.activitySettings.sleep.streakEnabled = true;
+  t.state.activitySettings.sleep.protectionEnabled = false;
+  t.state.activitySettings.sleep.sleepCriteria = { duration:true, interval:true, bedtime:true, wake:true, screenfree:false };
+  t.state.activitySettings.sleep.sleepMinHours = 7;
+  t.state.activitySettings.sleep.sleepMinInterval = 7;
+  t.state.activitySettings.sleep.sleepMaxInterval = 9;
+  t.state.log.push({ id:'sl1', date:'2026-07-13', activity:'sleep', value:8, hours:8, start:'22:20', end:'06:20', sleepDate:'2026-07-12' });
+  t.recalc();
+  assert.equal(t.effectiveDate(t.state.log.at(-1)), '2026-07-12');
+  assert.equal(t.requirementMet('sleep','2026-07-12'), true);
+  assert.equal(t.requirementMet('sleep','2026-07-13'), false);
+  assert.ok(storage.get('oneupStreakDataV1').includes('summary'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; t.state.activitySettings[id].streakEnabled = false; });
+  t.state.activitySettings.meditation.enabled = true;
+  t.state.activitySettings.meditation.streakEnabled = true;
+  t.state.activitySettings.meditation.dailyRequirement = 10;
+  t.state.activitySettings.meditation.weeklyGoal = 5;
+  t.state.activitySettings.meditation.protectionEnabled = false;
+  ['2026-07-07','2026-07-08','2026-07-10','2026-07-11','2026-07-13'].forEach((d,i)=>t.state.log.push({ id:`m${i}`, date:d, activity:'meditation', value:10 }));
+  t.recalc();
+  assert.equal(t.streakInfo('meditation','2026-07-13').current, 1);
+  assert.equal(t.weeklyConsistency('meditation','2026-07-13').done, 1);
+  assert.equal(t.streakInfo('meditation','2026-07-11').current, 2);
+  assert.equal(t.weeklyConsistency('meditation','2026-07-11').done, 4); // missing one day did not reset week
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; t.state.activitySettings[id].streakEnabled = false; });
+  t.state.activitySettings.breathing.enabled = true;
+  t.state.activitySettings.breathing.streakEnabled = true;
+  t.state.activitySettings.breathing.dailyRequirement = 5;
+  t.state.activitySettings.breathing.protectionEnabled = true;
+  t.state.activitySettings.breathing.autoProtection = true;
+  t.state.log.push({ id:'b1', date:'2026-07-11', activity:'breathing', value:5 });
+  t.state.log.push({ id:'b2', date:'2026-07-13', activity:'breathing', value:5 });
+  t.recalc();
+  t.state.streakData.manualProtection.breathing = { '2026-07-12': true };
+  assert.equal(t.dayComplete('breathing','2026-07-12', true), true);
+  assert.equal(t.streakInfo('breathing','2026-07-13').current, 3);
+  assert.equal(t.dayComplete('breathing','2026-07-10', true), false); // no consecutive / second protection
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  ['sleep','meditation','breathing','steps'].forEach(id => { t.state.activitySettings[id].enabled = true; t.state.activitySettings[id].streakEnabled = true; t.state.activitySettings[id].protectionEnabled = false; });
+  t.state.log.push({ id:'s', date:'2026-07-13', activity:'steps', value:8000 });
+  t.state.log.push({ id:'b', date:'2026-07-13', activity:'breathing', value:5 });
+  t.state.log.push({ id:'m', date:'2026-07-13', activity:'meditation', value:10 });
+  t.state.log.push({ id:'sl', date:'2026-07-13', activity:'sleep', value:8, hours:8, start:'22:30', end:'06:30' });
+  t.recalc();
+  assert.equal(t.consistencyScore('2026-07-13') > 40, true);
+  t.state.log.find(e=>e.id==='m').value = 0; // correction of old data recalculates
+  t.recalc();
+  assert.equal(t.requirementMet('meditation','2026-07-13'), false);
+}
