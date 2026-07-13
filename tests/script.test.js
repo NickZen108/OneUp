@@ -211,8 +211,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.6');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 14.42');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.7');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 15.57');
 }
 
 {
@@ -346,11 +346,16 @@ function load(storage = new Map()) {
 
 {
   const source = fs.readFileSync('script.js','utf8');
-  assert.ok(source.includes('function rerenderActivitySelectionPreservingPosition(step, activityId)'));
-  assert.ok(source.includes('data-activity-option="${id}"'));
-  assert.ok(source.includes('rerenderActivitySelectionPreservingPosition(step,id);'));
-  assert.ok(source.includes("window.scrollTo({top:oldWindowY+delta,behavior:'auto'})"));
-  assert.ok(source.includes('newModal.scrollTop += delta'));
+  assert.equal(source.includes('function rerenderActivitySelectionPreservingPosition(step, activityId)'), false);
+  assert.ok(source.includes('function activityOptionHtml(id)'));
+  assert.ok(source.includes('ids.map(activityOptionHtml).join'));
+  assert.ok(source.includes('function updateActivityOption(id,step)'));
+  assert.ok(source.includes('currentCard.replaceWith(newCard)'));
+  assert.ok(source.includes('function bindActivityOption(card,step)'));
+  assert.ok(source.includes('function bindGoalControls(container=document,step=1)'));
+  assert.equal(source.includes('rerenderActivitySelectionPreservingPosition(step,id);'), false);
+  assert.equal(source.includes("window.scrollTo({top:oldWindowY+delta,behavior:'auto'})"), false);
+  assert.equal(source.includes('newModal.scrollTop += delta'), false);
   assert.equal(source.includes('Konkurrencemål er adskilt fra dine personlige hverdagsmål.'), false);
   assert.equal(source.includes('Aktiviteten er konfigureret.'), false);
   assert.equal(source.includes('data-activity-validation-status'), false);
