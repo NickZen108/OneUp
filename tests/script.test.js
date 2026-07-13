@@ -198,7 +198,7 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 9);
+  assert.equal(t.competitionActivityIds().length, 10);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
   assert.equal(t.competitionActivityIds().includes('sleepDuration'), false);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
@@ -211,8 +211,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.9.1');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 09.02');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.10.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 10.35');
 }
 
 {
@@ -235,10 +235,10 @@ function load(storage = new Map()) {
   const { context } = load();
   const t = context.window.__oneUpTest;
   assert.equal(t.scoreMoreIsBetter(30,30,60), 100);
-  assert.equal(t.scoreMoreIsBetter(45,30,60), 110);
-  assert.equal(t.scoreMoreIsBetter(60,30,60), 120);
+  assert.equal(t.scoreMoreIsBetter(45,30,60), 100);
+  assert.equal(t.scoreMoreIsBetter(60,30,60), 100);
   assert.equal(t.scoreLessIsBetter(30,30,15), 100);
-  assert.equal(t.scoreLessIsBetter(15,30,15), 120);
+  assert.equal(t.scoreLessIsBetter(15,30,15), 100);
 }
 
 {
@@ -246,9 +246,9 @@ function load(storage = new Map()) {
   const t = context.window.__oneUpTest;
   t.state.activitySettings.steps.goal = 9000;
   const c = t.createCompetition({ name:'Gammel opsætning', activities:['steps'], startDate:'2026-07-13', endDate:'2026-07-20' });
-  assert.equal(c.activityGoals.steps.target, 9000);
+  assert.equal(c.activities.includes('dailyStepTarget'), true);
+  assert.equal(c.activityGoals.dailyStepTarget.target, 8000);
   assert.equal(t.state.activitySettings.steps.goal, 9000);
-  assert.equal(c.activityGoals.steps.target, 9000);
 }
 
 
@@ -256,7 +256,7 @@ function load(storage = new Map()) {
   const { context } = load();
   const t = context.window.__oneUpTest;
   assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:21.75 }).complete, true);
-  assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:22.5 }).complete, false);
+  assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:22.5 }).bonusTarget, null);
   assert.equal(t.goalSummary({ activityId:'bedtime', target:22.25, bonusTarget:21.75 }).includes('senest kl. 22.15'), true);
 }
 
@@ -267,8 +267,8 @@ function load(storage = new Map()) {
   assert.equal(migrated.target, 3);
   assert.equal(migrated.period, 'daily');
   assert.ok(t.goalSummary({ activityId:'breathing', target:2 }).includes('20 runder pr. dag'));
-  assert.equal(t.scoreMoreIsBetter(1,2,2.4), 50);
-  assert.equal(t.scoreMoreIsBetter(2.4,2,2.4), 120);
+  assert.equal(t.scoreMoreIsBetter(1,2,null), 50);
+  assert.equal(t.scoreMoreIsBetter(2.4,2,null), 100);
 }
 
 {
@@ -276,7 +276,8 @@ function load(storage = new Map()) {
   const t = context.window.__oneUpTest;
   assert.equal(t.normalizeGoalConfig('running', { activityId:'running', metric:'minutes', target:30 }).needsReconfiguration, true);
   assert.equal(t.normalizeGoalConfig('running', { activityId:'running', metric:'kilometers', target:10, bonusTarget:15, period:'weekly' }).complete, true);
-  assert.ok(t.goalSummary({ activityId:'cycling', metric:'kilometers', target:25, bonusTarget:40, period:'weekly' }).includes('Bonus: 40 km pr. uge'));
+  assert.equal(t.normalizeGoalConfig('running', { activityId:'running', metric:'kilometers', target:10, bonusTarget:15, period:'weekly' }).bonusTarget, null);
+  assert.ok(t.goalSummary({ activityId:'cycling', metric:'kilometers', target:25, bonusTarget:40, period:'weekly' }).includes('25 km pr. uge'));
 }
 
 {
@@ -285,7 +286,7 @@ function load(storage = new Map()) {
   const cfg = t.normalizeGoalConfig('socialMediaFree', { activityId:'socialMediaFree', target:60, bonusTarget:30, period:'daily' });
   assert.equal(cfg.comparisonMode, 'lessIsBetter');
   assert.equal(t.scoreLessIsBetter(60,60,30), 100);
-  assert.equal(t.scoreLessIsBetter(30,60,30), 120);
+  assert.equal(t.scoreLessIsBetter(30,60,null), 100);
   assert.equal(t.scoreLessIsBetter(90,60,30), 50);
 }
 
