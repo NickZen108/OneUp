@@ -262,6 +262,45 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
+  const defaults = {
+    strength: 1,
+    breathing: 1,
+    meditation: 10,
+    screenFreeBeforeBed: 30,
+    socialMediaFree: 60,
+    running: 5,
+    cycling: 10,
+    dailyStepTarget: 8000,
+    mostSteps: 0
+  };
+  for (const [id, expected] of Object.entries(defaults)) {
+    assert.equal(t.newCompetitionGoalDefault(id), expected, `${id} starts at explicit competition default`);
+  }
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  t.competitionDraft = { activityGoals:{}, activities:[] };
+  const strength = t.draftGoal('strength');
+  assert.equal(strength.target, 1);
+  assert.equal(strength.complete, true);
+  assert.equal(strength.migratedFromLegacy, false);
+  assert.equal(strength.needsReconfiguration, false);
+  assert.equal(strength.migrationNotice, '');
+}
+
+{
+  const source = fs.readFileSync('script.js', 'utf8');
+  assert.ok(source.includes('const raw = Number(cfg.target); const current = Number.isFinite(raw) ? raw : min; const next = clamp(current + delta, min, max);'));
+  assert.ok(!source.includes('num(cfg.target||min)+delta'));
+  assert.ok(source.includes('cfg.migratedFromLegacy===true||cfg.needsReconfiguration===true'));
+}
+
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
   assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:21.75 }).complete, true);
   assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:22.5 }).bonusTarget, null);
   assert.equal(t.goalSummary({ activityId:'bedtime', target:22.25, bonusTarget:21.75 }).includes('senest kl. 22.15'), true);
