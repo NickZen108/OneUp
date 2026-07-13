@@ -1073,3 +1073,21 @@ h1 {
   .compact-mission-scene { grid-template-columns: 1fr; }
   .compact-resident { min-height: 5.8rem; }
 }
+
+.today-goals-card,
+.activity-preferences,
+.manual-activity { margin-top: 1rem; }
+.goal-status-list,
+#activity-settings-list { display: grid; gap: 0.75rem; padding: 0; list-style: none; }
+.goal-status-list li,
+.activity-setting { background: rgba(255,255,255,0.76); border: 1px solid rgba(88,64,44,0.12); border-radius: 18px; padding: 0.9rem; display: grid; gap: 0.35rem; }
+.goal-status-list em { color: #5f7448; font-style: normal; }
+.goal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; }
+.manual-activity label,
+.activity-setting label { display: grid; gap: 0.25rem; }
+.manual-activity input,
+.activity-setting input,
+.activity-setting select { width: 100%; }
+.muted { color: #6f665e; font-size: 0.92rem; }
+#activity-list { display: grid; gap: 1rem; }
+#activity-log-list button { margin-left: 0.35rem; }
