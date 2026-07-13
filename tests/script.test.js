@@ -264,8 +264,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.5');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 17.05');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.6');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 18.54');
 }
 
 {
@@ -412,4 +412,14 @@ function load(storage = new Map()) {
   assert.equal(source.includes('Konkurrencemål er adskilt fra dine personlige hverdagsmål.'), false);
   assert.equal(source.includes('Aktiviteten er konfigureret.'), false);
   assert.equal(source.includes('data-activity-validation-status'), false);
+}
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  assert.ok(source.includes('class="detail-navigation"'));
+  assert.ok(source.includes('data-go-home aria-label="Tilbage til forsiden"'));
+  assert.equal(source.includes('Detaljeside</p><h2>${c.name}</h2>'), false);
+  assert.ok(source.includes("function goToHomeFromCompetition(){ showPage('today');"));
+  assert.ok(source.includes("$('#competition-home-section')"));
+  assert.ok(source.includes("$$('[data-go-home]').forEach(b=>b.onclick=goToHomeFromCompetition)"));
 }
