@@ -118,3 +118,37 @@ function load(storage = new Map()) {
   t.recalc();
   assert.equal(t.requirementMet('meditation','2026-07-13'), false);
 }
+
+{
+  const { context, storage } = load();
+  const t = context.window.__oneUpTest;
+  t.state.profile.nickname = 'Anna';
+  t.state.activitySettings.steps.enabled = true;
+  t.state.activitySettings.meditation.enabled = true;
+  const c = t.createCompetition({ type:'others', name:'Familieudfordringen', activities:['steps','meditation'], startDate:'2026-07-13', endDate:'2026-07-20', weightingMode:'custom', weights:{steps:60,meditation:40}, participants:[{id:'bo',name:'Bo',demo:true,friend:true}] });
+  assert.equal(c.creator, 'you');
+  assert.equal(t.isCompetitionLeader(c), true);
+  assert.equal(c.leaders.join(','), 'you');
+  assert.ok(c.changeLog[0].what.includes('oprettede'));
+  assert.ok(storage.get('oneupCompetitionsV1').includes('Familieudfordringen'));
+  t.state.log.push({ id:'s1', date:'2026-07-13', activity:'steps', value:8800 });
+  t.state.log.push({ id:'m1', date:'2026-07-13', activity:'meditation', value:12 });
+  t.recalc();
+  t.recalcCompetitions();
+  assert.equal(Math.round(t.competitionActivityScore(c,'steps',{id:'you',name:'Anna'},'2026-07-13')), 110);
+  assert.equal(t.competitionActivityScore(c,'meditation',{id:'you',name:'Anna'},'2026-07-13'), 120);
+  assert.equal(c.results.userScore, 114);
+  assert.equal(t.competitionLeaderboard(c).some(r => r.participant.id === 'bo'), true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const c = t.createCompetition({ type:'self', name:'Mental balance', activities:['breathing','meditation'], startDate:'2026-07-13', endDate:'2026-07-19' });
+  assert.equal(c.participants.length, 1);
+  assert.equal(c.type, 'self');
+  assert.equal(c.scoringMethod, 'goalPercent');
+  assert.equal(Object.values(c.weighting.weights).reduce((a,b)=>a+b,0), 100);
+  t.archiveCompetition(c.id);
+  assert.equal(c.status, 'archived');
+}
