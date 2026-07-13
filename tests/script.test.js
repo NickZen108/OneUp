@@ -343,3 +343,15 @@ function load(storage = new Map()) {
   assert.equal(t.competitionActivityIds().some(id => ['sleepDuration','wakeTime','sleepGoalNights','bedtimeConsistency'].includes(id)), false);
   assert.ok(t.goalSummary({ activityId:'sleepDuration', target:7 }).includes('bruges ikke længere'));
 }
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  assert.ok(source.includes('function rerenderActivitySelectionPreservingPosition(step, activityId)'));
+  assert.ok(source.includes('data-activity-option="${id}"'));
+  assert.ok(source.includes('rerenderActivitySelectionPreservingPosition(step,id);'));
+  assert.ok(source.includes("window.scrollTo({top:oldWindowY+delta,behavior:'auto'})"));
+  assert.ok(source.includes('newModal.scrollTop += delta'));
+  assert.equal(source.includes('Konkurrencemål er adskilt fra dine personlige hverdagsmål.'), false);
+  assert.equal(source.includes('Aktiviteten er konfigureret.'), false);
+  assert.equal(source.includes('data-activity-validation-status'), false);
+}
