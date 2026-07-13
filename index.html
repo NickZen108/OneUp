@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=0.12.6" />
+  <link rel="stylesheet" href="styles.css?v=0.12.7" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.12.6</p>
-        <p id="app-build-label" class="build-label">Opdateret 13. juli 2026 kl. 18.54</p>
+        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.12.7</p>
+        <p id="app-build-label" class="build-label">Opdateret 13. juli 2026 kl. 20.53</p>
         <h1>Din daglige sundhed</h1>
       </div>
       <div class="pill"><span id="header-points">0</span> point</div>
@@ -53,19 +53,22 @@
     </section>
 
     <section class="page" data-page="competition" aria-labelledby="competition-title">
-      <p class="eyebrow">Konkurrence</p>
-      <h2 id="competition-title">Sund konkurrence</h2>
-      <div class="segmented" role="tablist"><button class="active" data-competition="others">Mod andre</button><button data-competition="self">Mod mig selv</button></div>
-      <div id="competition-others">
-        <label class="field">Gruppe<select id="group-select"><option>Venner</option><option>Familie</option><option>Arbejdsplads</option></select></label>
-        <label class="field">Konkurrenceform<select id="competition-type"></select></label>
-        <p class="info-box">Eksempelpersonerne er demo-data. Rigtige grupper og invitationer kræver login senere.</p>
-        <button id="create-group">Opret gruppe</button><p id="group-message" class="muted"></p>
-        <ol id="leaderboard" class="leaderboard"></ol>
-      </div>
-      <div id="competition-self" hidden>
-        <div id="self-summary" class="card-list"></div>
-        <ol id="self-ranking" class="leaderboard"></ol>
+      <section id="competition-system"></section>
+      <div id="legacy-competition-overview">
+        <p class="eyebrow">Konkurrence</p>
+        <h2 id="competition-title">Sund konkurrence</h2>
+        <div class="segmented" role="tablist"><button class="active" data-competition="others">Mod andre</button><button data-competition="self">Mod mig selv</button></div>
+        <div id="competition-others">
+          <label class="field">Gruppe<select id="group-select"><option>Venner</option><option>Familie</option><option>Arbejdsplads</option></select></label>
+          <label class="field">Konkurrenceform<select id="competition-type"></select></label>
+          <p class="info-box">Eksempelpersonerne er demo-data. Rigtige grupper og invitationer kræver login senere.</p>
+          <button id="create-group">Opret gruppe</button><p id="group-message" class="muted"></p>
+          <ol id="leaderboard" class="leaderboard"></ol>
+        </div>
+        <div id="competition-self" hidden>
+          <div id="self-summary" class="card-list"></div>
+          <ol id="self-ranking" class="leaderboard"></ol>
+        </div>
       </div>
     </section>
 
@@ -90,6 +93,6 @@
   <nav class="bottom-nav" aria-label="Hovednavigation">
     <button class="active" data-nav="today">I dag</button><button data-nav="activities">Aktiviteter</button><button data-nav="competition">Konkurrence</button><button data-nav="development">Udvikling</button><button data-nav="profile">Profil</button>
   </nav>
-  <script src="script.js?v=0.12.6"></script>
+  <script src="script.js?v=0.12.7"></script>
 </body>
 </html>
