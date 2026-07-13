@@ -165,6 +165,47 @@ function load(storage = new Map()) {
   assert.equal(c.participants.length, 2);
 }
 
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const self = t.createCompetition({ type:'self', name:'Mere bevægelse', activities:['dailyStepTarget','bedtime'], startDate:'2026-07-13', endDate:'2026-08-11' });
+  const home = t.competitionCard(self, false);
+  assert.ok(home.includes('Åbn hele konkurrencen'));
+  assert.ok(home.includes('home-activity-row'));
+  assert.equal(home.includes('Konkurrenceledere'), false);
+  assert.equal(home.includes('Scoring:'), false);
+  assert.equal(home.includes('Fold sammen'), false);
+  const detail = t.competitionCard(self, true);
+  assert.ok(detail.includes('Konkurrenceledere'));
+  assert.ok(detail.includes('Scoring:'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const versus = t.createCompetition({ type:'versus', name:'Vennerne', activities:['dailyStepTarget'], startDate:'2026-07-13', endDate:'2026-07-31', participants:[{id:'a',name:'A',demo:true},{id:'b',name:'B',demo:true},{id:'c',name:'C',demo:true},{id:'d',name:'D',demo:true},{id:'e',name:'E',demo:true},{id:'f',name:'F',demo:true}] });
+  const html = t.competitionCard(versus, false);
+  assert.ok(html.includes('Top 5'));
+  assert.equal((html.match(/<li class=/g)||[]).length, 5);
+  assert.equal(html.includes('streak'), false);
+  assert.equal(html.includes('gennemførte'), false);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const coop = t.createCompetition({ type:'coop', name:'Sammen', activities:['dailyStepTarget','cycling'], startDate:'2026-07-13', endDate:'2026-07-31', participants:[{id:'a',name:'A',demo:true}] });
+  coop.activityGoals.dailyStepTarget.target = 1000000;
+  coop.activityGoals.cycling.target = 500;
+  const html = t.competitionCard(coop, false);
+  assert.ok(html.includes('home-coop-row'));
+  assert.ok(html.includes('af'));
+  assert.ok(html.includes('home-progress'));
+  assert.equal(html.includes('Deltagerne samarbejder om at nå et fælles mål.'), false);
+  assert.ok(t.coopActivityValue(coop, 'dailyStepTarget') > 0);
+}
+
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
@@ -223,8 +264,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.4');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 16.10');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.5');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 17.05');
 }
 
 {
