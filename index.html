@@ -76,6 +76,7 @@
       </section>
 
       <section class="activities app-section" data-page="activity" aria-label="Aktiviteter">
+        <article class="activity-card soft-panel today-goals-card"><h2>Dagens mål</h2><ul id="today-goals" class="goal-status-list" aria-live="polite"></ul></article>
         <article class="activity-card soft-panel compact-mission-village" id="compact-mission-village" aria-live="polite" aria-label="Aktiv missionslandsby">
           <div id="active-mission-activity">Vælg en mission og hjælp en beboer gennem din aktivitet.</div>
         </article>
@@ -147,6 +148,8 @@
             <button type="button" class="secondary-button" id="stop-breathing">Stop</button>
           </div>
         </article>
+        <div id="activity-list"></div>
+        <article class="activity-card soft-panel"><h2>Manuelle registreringer</h2><ul id="activity-log-list" class="history-list"></ul></article>
       </section>
 
       <section class="development-card app-section" data-page="development" aria-labelledby="development-title">
@@ -227,7 +230,7 @@
           <button class="complete-button" type="submit">Gem profil lokalt</button>
           <p id="profile-save-status" aria-live="polite"></p>
         </form>
-        <p class="info-box">Flere aktiviteter som søvn, løb, cykling og naturture kommer senere.</p><p class="info-box">Landesammenligninger kommer senere, når der er nok anonyme brugerdata.</p>
+        <section class="activity-preferences"><h3>Mine aktiviteter</h3><p>Slå aktiviteter til eller fra, og redigér dine personlige mål. Skridt og åndedrætsøvelser er slået til som standard.</p><div id="activity-settings-list"></div></section><p class="info-box">Landesammenligninger kommer senere, når der er nok anonyme brugerdata.</p>
       </section>
 
       <button type="button" class="reset-button" id="reset-points">Nulstil mine point</button>
