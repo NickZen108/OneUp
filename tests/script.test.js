@@ -10,7 +10,7 @@ function load(storage = new Map()) {
   const context = {
     localStorage:{ getItem:k=>storage.has(k)?storage.get(k):null, setItem:(k,v)=>storage.set(k,String(v)), removeItem:k=>storage.delete(k) },
     window:{ __oneUpNow:()=>new Date('2026-07-13T12:00:00Z'), setInterval(){return 1}, clearInterval(){} },
-    document:{ querySelector:s=>map[s] || el(), querySelectorAll:s=>[], createElement:()=>el() },
+    document:{ readyState:'complete', body:el(), addEventListener(){}, querySelector:s=>map[s] || el(), querySelectorAll:s=>[], createElement:()=>el() },
     Option:function(text,value){ return {text,value}; }, FormData:function(){ return []; }, prompt:()=>null, setInterval(){return 1}, clearInterval(){}
   };
   vm.runInNewContext(fs.readFileSync('script.js','utf8'), context);
@@ -197,7 +197,7 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.7.0');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.7.1');
   assert.equal(map['#app-build-label'].textContent, 'Bygget 13. juli 2026 kl. 07.50');
 }
 
