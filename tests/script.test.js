@@ -37,8 +37,8 @@ function load(storage = new Map()) {
   context.window.__oneUpTest.state.log.push({ id:'b', date:'2026-07-13', activity:'breathing', value:3, mode:'box' });
   context.window.__oneUpTest.state.log.push({ id:'sl', date:'2026-07-13', activity:'sleep', value:6.4, hours:6.4 });
   context.window.__oneUpTest.recalc();
-  assert.equal(context.window.__oneUpTest.oneUpScore('2026-07-13'), 80); // 100, 60, 80 averaged and capped
-  assert.equal(context.window.__oneUpTest.state.history['2026-07-13'].totalPoints, 95); // 80 step + 15 breathing + 0 sleep
+  assert.equal(context.window.__oneUpTest.oneUpScore('2026-07-13'), 100); // removed legacy sleep activity no longer lowers active goal score
+  assert.equal(context.window.__oneUpTest.state.history['2026-07-13'].totalPoints, 115); // historical sleep entries are preserved
 }
 
 {
@@ -198,11 +198,11 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 13);
+  assert.equal(t.competitionActivityIds().length, 9);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
-  assert.ok(t.competitionActivityIds().includes('sleepDuration'));
+  assert.equal(t.competitionActivityIds().includes('sleepDuration'), false);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
-  assert.ok(t.competitionActivityIds().includes('wakeTime'));
+  assert.equal(t.competitionActivityIds().includes('wakeTime'), false);
   assert.equal(t.sanitizeActivityIds(['screenfree','socialfree','unknown']).join(','), 'screenFreeBeforeBed,socialMediaFree');
   const weights = t.defaultWeights(['steps','sleep','breathing']);
   assert.equal(`${weights.steps},${weights.sleep},${weights.breathing}`, '33.34,33.33,33.33');
@@ -211,8 +211,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.9.0');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 08.32');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.9.1');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 09.02');
 }
 
 {
@@ -227,7 +227,7 @@ function load(storage = new Map()) {
   assert.ok(html.includes('<span>Streak til</span>'));
   assert.ok(html.includes('<span>Streak-beskyttelse</span>'));
   assert.ok(html.includes('<span>Brug automatisk streak-beskyttelse</span>'));
-  assert.ok(html.includes('Søvnlængde'));
+  assert.equal(html.includes('Søvnlængde'), false);
   assert.equal(html.includes('Søvn</h3>'), false);
 }
 
@@ -248,5 +248,51 @@ function load(storage = new Map()) {
   const c = t.createCompetition({ name:'Gammel opsætning', activities:['steps'], startDate:'2026-07-13', endDate:'2026-07-20' });
   assert.equal(c.activityGoals.steps.target, 9000);
   assert.equal(t.state.activitySettings.steps.goal, 9000);
-  assert.ok(c.activityGoals.steps.migrationNotice.includes('tidligere standardmål'));
+  assert.equal(c.activityGoals.steps.target, 9000);
+}
+
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:21.75 }).complete, true);
+  assert.equal(t.normalizeGoalConfig('bedtime', { activityId:'bedtime', target:22.25, bonusTarget:22.5 }).complete, false);
+  assert.equal(t.goalSummary({ activityId:'bedtime', target:22.25, bonusTarget:21.75 }).includes('senest kl. 22.15'), true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const migrated = t.normalizeGoalConfig('breathing', { activityId:'breathing', metric:'rounds', unit:'runder', target:26 });
+  assert.equal(migrated.target, 3);
+  assert.equal(migrated.period, 'daily');
+  assert.ok(t.goalSummary({ activityId:'breathing', target:2 }).includes('20 runder pr. dag'));
+  assert.equal(t.scoreMoreIsBetter(1,2,2.4), 50);
+  assert.equal(t.scoreMoreIsBetter(2.4,2,2.4), 120);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.normalizeGoalConfig('running', { activityId:'running', metric:'minutes', target:30 }).needsReconfiguration, true);
+  assert.equal(t.normalizeGoalConfig('running', { activityId:'running', metric:'kilometers', target:10, bonusTarget:15, period:'weekly' }).complete, true);
+  assert.ok(t.goalSummary({ activityId:'cycling', metric:'kilometers', target:25, bonusTarget:40, period:'weekly' }).includes('Bonus: 40 km pr. uge'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const cfg = t.normalizeGoalConfig('socialMediaFree', { activityId:'socialMediaFree', target:60, bonusTarget:30, period:'daily' });
+  assert.equal(cfg.comparisonMode, 'lessIsBetter');
+  assert.equal(t.scoreLessIsBetter(60,60,30), 100);
+  assert.equal(t.scoreLessIsBetter(30,60,30), 120);
+  assert.equal(t.scoreLessIsBetter(90,60,30), 50);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.ok(t.sanitizeActivityIds(['sleepDuration','wakeTime','sleepGoalNights']).includes('sleepDuration'));
+  assert.equal(t.competitionActivityIds().some(id => ['sleepDuration','wakeTime','sleepGoalNights','bedtimeConsistency'].includes(id)), false);
+  assert.ok(t.goalSummary({ activityId:'sleepDuration', target:7 }).includes('bruges ikke længere'));
 }
