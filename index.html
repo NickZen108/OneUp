@@ -1,250 +1,93 @@
 <!doctype html>
 <html lang="da">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OneUp – Gamify Your Health</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <main class="app-shell" aria-labelledby="app-title">
-      <section class="hero-card app-section" data-page="village">
-        <p class="eyebrow">Velkommen til din lille sundhedsverden</p>
-        <h1 id="app-title">OneUp</h1>
-        <p class="subtitle">Gamify Your Health</p>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OneUp – sundhed, vaner og mål</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">OneUp prototype</p>
+        <h1>Din daglige sundhed</h1>
+      </div>
+      <div class="pill"><span id="header-points">0</span> point</div>
+    </header>
 
-        <div class="points-card" aria-live="polite">
-          <span class="points-label">Dine point</span>
-          <strong id="points">0</strong>
-        </div>
-      </section>
-
-      <section class="world-card app-section" data-page="village" aria-label="En lille landsby, der vokser med dine point og missioner">
-        <div class="sky">
-          <div class="sun" aria-hidden="true"></div>
-          <div class="cloud cloud-one" aria-hidden="true"></div>
-          <div class="cloud cloud-two" aria-hidden="true"></div>
-          <div class="rainbow" aria-hidden="true"></div>
-        </div>
-
-        <div class="world village" id="world">
-          <div class="path" aria-hidden="true"></div>
-          <div class="house house-one" aria-hidden="true"><span></span></div>
-          <div class="house house-two" aria-hidden="true"><span></span></div>
-          <div class="house house-three" aria-hidden="true"><span></span></div>
-          <div class="tree tree-left" aria-hidden="true"></div>
-          <div class="tree tree-right" aria-hidden="true"></div>
-          <div class="tree tree-small" aria-hidden="true"></div>
-
-          <button type="button" class="resident resident-olsen" data-resident="olsen" aria-label="Åbn nærbillede af Fru Olsen">
-            <span class="resident-face">👵</span><span class="resident-label">Fru Olsen</span>
-          </button>
-          <button type="button" class="resident resident-hansen" data-resident="hansen" aria-label="Åbn nærbillede af Hr. Hansen">
-            <span class="resident-face">👨</span><span class="resident-label">Hr. Hansen</span>
-          </button>
-          <button type="button" class="resident resident-buster" data-resident="buster" aria-label="Åbn nærbillede af Hunden Buster">
-            <span class="resident-face">🐶</span><span class="resident-label">Buster</span>
-          </button>
-
-          <div class="villager villager-friend" aria-hidden="true">🧒</div>
-          <div class="animal animal-cat" aria-hidden="true">🐈</div>
-          <div class="animal animal-bird" aria-hidden="true">🐦</div>
-          <div class="flower flower-one" aria-hidden="true">✿</div>
-          <div class="flower flower-two" aria-hidden="true">✿</div>
-          <div class="flower flower-three" aria-hidden="true">✿</div>
-          <div class="flower flower-four" aria-hidden="true">✿</div>
-          <div class="flower flower-five" aria-hidden="true">✿</div>
-        </div>
-
-        <p class="info-box">Tryk på en beboer for at se, hvordan du kan hjælpe.</p>
-        <p id="world-message" class="world-message">Start roligt. Hver lille handling tæller.</p>
-        <div id="village-celebration" class="village-celebration" aria-live="polite"></div>
-      </section>
-
-      <section class="resident-panel app-section" data-page="village" id="resident-panel" hidden aria-live="polite" aria-label="Nærbillede af beboer">
-        <button type="button" class="resident-panel-close" id="resident-panel-close">Luk ×</button>
-        <h2 id="resident-name">Beboer</h2>
-        <p id="resident-story"></p>
-        <dl class="resident-details">
-          <div><dt>Aktuelt humør</dt><dd id="resident-mood"></dd></div>
-          <div><dt>Personlig mission</dt><dd id="resident-mission"></dd></div>
-          <div><dt>Fremdrift</dt><dd id="resident-progress"></dd></div>
-          <div><dt>Næste udviklingstrin</dt><dd id="resident-missing"></dd></div>
-        </dl>
-        <p id="resident-status-message" class="info-box"></p>
-        <div class="button-row"><button type="button" class="complete-button" id="resident-primary-action">Start mission</button><button type="button" class="secondary-button" id="resident-pause-action" hidden>Pause</button></div>
-      </section>
-
-      <section class="activities app-section" data-page="activity" aria-label="Aktiviteter">
-        <article class="activity-card soft-panel today-goals-card"><h2>Dagens mål</h2><ul id="today-goals" class="goal-status-list" aria-live="polite"></ul></article>
-        <article class="activity-card soft-panel compact-mission-village" id="compact-mission-village" aria-live="polite" aria-label="Aktiv missionslandsby">
-          <div id="active-mission-activity">Vælg en mission og hjælp en beboer gennem din aktivitet.</div>
-        </article>
-        <article class="activity-card">
-          <div>
-            <h2>Daglige skridt</h2>
-            <p>Registrér dagens samlede skridt. Du får 10 point pr. 1.000 skridt.</p>
-          </div>
-
-          <label class="field-label" for="step-count">Hvor mange skridt har du gået i dag?</label>
-          <input id="step-count" class="number-input" type="number" inputmode="numeric" min="0" step="1" value="0" />
-          <button type="button" class="complete-button" id="update-steps">Opdatér skridt</button>
-
-          <dl class="progress-list" aria-live="polite">
-            <div>
-              <dt>Dagens registrerede skridt</dt>
-              <dd id="steps-today">0</dd>
-            </div>
-            <div>
-              <dt>Dagens optjente skridt-point</dt>
-              <dd id="step-points-today">0</dd>
-            </div>
-            <div>
-              <dt>Skridt til næste point</dt>
-              <dd id="steps-to-next-point">100</dd>
-            </div>
-          </dl>
-        </article>
-          <div class="activity-card soft-panel">
-            <h2>Skridtbank</h2>
-            <p>Ubrugte skridt kan gives til en beboer eller gemmes til senere.</p><p>Ufordelte skridt: <strong id="bank-total">0</strong></p>
-            <ul id="bank-entries" class="history-list"></ul>
-            <label>Send til
-              <select id="bank-target"><option value="buster">Buster</option><option value="olsen">Fru Olsen</option></select>
-            </label>
-            <div class="quick-buttons">
-              <label><input type="radio" name="bank-quick" value="500" /> 500 skridt</label>
-              <label><input type="radio" name="bank-quick" value="1000" /> 1.000 skridt</label>
-              <label><input type="radio" name="bank-quick" value="0" checked /> Alt muligt</label>
-            </div>
-            <input id="bank-custom-amount" class="number-input" type="number" min="0" placeholder="Eller skriv antal" />
-            <button type="button" class="secondary-button" id="donate-bank">Overfør ældste skridt først</button>
-          </div>
-
-
-        <article class="activity-card">
-          <div>
-            <h2>Åndedrætsøvelse</h2>
-            <p>Vælg en øvelse. Du får 5 point pr. fuldført runde. Øvelsen fortsætter, indtil du trykker Stop.</p>
-          </div>
-
-          <fieldset class="breathing-options">
-            <legend>Vælg øvelse</legend>
-            <label><input type="radio" name="breathing-exercise" value="box" checked /> Box breathing: 4 ind, 4 hold, 4 ud, 4 hold</label>
-            <label><input type="radio" name="breathing-exercise" value="478" /> 4-7-8 breathing: 4 ind, 7 hold, 8 ud</label>
-          </fieldset>
-
-          <div class="timer-card" aria-live="polite">
-            <span>Valgt øvelse: <strong id="breathing-exercise-name">Ingen øvelse i gang</strong></span>
-            <span>Aktuel fase: <strong id="breathing-phase">Vælg en øvelse og tryk start.</strong></span>
-            <strong><span id="breathing-seconds">0</span> sek. tilbage</strong>
-            <span>Fuldførte runder i sessionen: <strong id="breathing-rounds-session">0</strong></span>
-            <span>Point i sessionen: <strong id="breathing-points-session">0</strong></span>
-            <label class="voice-note"><input type="checkbox" disabled /> Stemmevejledning – kommer senere</label>
-          </div>
-
-          <div class="button-row">
-            <button type="button" class="complete-button" id="start-breathing">Start</button>
-            <button type="button" class="secondary-button" id="stop-breathing">Stop</button>
-          </div>
-        </article>
-        <div id="activity-list"></div>
-        <article class="activity-card soft-panel"><h2>Manuelle registreringer</h2><ul id="activity-log-list" class="history-list"></ul></article>
-      </section>
-
-      <section class="development-card app-section" data-page="development" aria-labelledby="development-title">
+    <section class="page active" data-page="today" aria-labelledby="today-title">
+      <div class="score-hero">
         <div>
-          <p class="eyebrow">Din daglige rytme</p>
-          <h2 id="development-title">Min udvikling</h2>
-          <p>Her kan du se, hvordan dagens små valg bygger videre på din udvikling.</p>
+          <p class="eyebrow">I dag</p>
+          <h2 id="today-title">OneUp-score</h2>
+          <p id="encouragement">Start roligt. Lidt tæller også.</p>
         </div>
+        <div class="score-ring"><strong id="oneup-score">0</strong><span>/100</span></div>
+      </div>
+      <dl class="metric-grid">
+        <div><dt>Dagens point</dt><dd id="today-points">0</dd></div>
+        <div><dt>Mål nået</dt><dd id="goals-met">0/0</dd></div>
+        <div><dt>Streak</dt><dd id="today-streak">0 dage</dd></div>
+      </dl>
+      <p class="info-box">Point viser aktivitet og kontinuitet. OneUp-scoren viser, hvor stor en del af dine personlige mål du har nået.</p>
+      <div id="today-activity-cards" class="card-list"></div>
+    </section>
 
-        <dl class="today-status" aria-live="polite">
-          <div>
-            <dt>Skridt i dag</dt>
-            <dd id="development-steps-today">0</dd>
-          </div>
-          <div>
-            <dt>Åndedrætsøvelser i dag</dt>
-            <dd id="development-breathing-today">0</dd>
-          </div>
-          <div>
-            <dt>Point optjent i dag</dt>
-            <dd id="development-points-today">0</dd>
-          </div>
-          <div>
-            <dt>Samlede point</dt>
-            <dd id="development-total-points">0</dd>
-          </div>
-        </dl>
+    <section class="page" data-page="activities" aria-labelledby="activities-title">
+      <p class="eyebrow">Aktiviteter</p>
+      <h2 id="activities-title">Vælg, mål og registrér</h2>
+      <div id="activity-manager" class="card-list"></div>
+      <article class="card">
+        <h3>Åndedrætsøvelse</h3>
+        <p>Box breathing og 4-7-8 fortsætter runde efter runde, indtil du stopper.</p>
+        <fieldset class="segmented">
+          <label><input type="radio" name="breathing-mode" value="box" checked /> Box</label>
+          <label><input type="radio" name="breathing-mode" value="478" /> 4-7-8</label>
+        </fieldset>
+        <div class="timer-card"><span id="breathing-label">Klar</span><strong id="breathing-rounds">0 runder</strong></div>
+        <div class="button-row"><button id="start-breathing">Start</button><button class="secondary" id="stop-breathing">Stop</button></div>
+      </article>
+      <article class="card"><h3>Registreringer i dag</h3><ul id="entry-list" class="plain-list"></ul></article>
+    </section>
 
-        <div class="streak-row" aria-live="polite">
-          <div>
-            <span>Nuværende streak</span>
-            <strong id="current-streak">0 dage</strong>
-          </div>
-          <div>
-            <span>Længste streak</span>
-            <strong id="longest-streak">0 dage</strong>
-          </div>
-        </div>
+    <section class="page" data-page="competition" aria-labelledby="competition-title">
+      <p class="eyebrow">Konkurrence</p>
+      <h2 id="competition-title">Sund konkurrence</h2>
+      <div class="segmented" role="tablist"><button class="active" data-competition="others">Mod andre</button><button data-competition="self">Mod mig selv</button></div>
+      <div id="competition-others">
+        <label class="field">Gruppe<select id="group-select"><option>Venner</option><option>Familie</option><option>Arbejdsplads</option></select></label>
+        <label class="field">Konkurrenceform<select id="competition-type"></select></label>
+        <p class="info-box">Eksempelpersonerne er demo-data. Rigtige grupper og invitationer kræver login senere.</p>
+        <button id="create-group">Opret gruppe</button><p id="group-message" class="muted"></p>
+        <ol id="leaderboard" class="leaderboard"></ol>
+      </div>
+      <div id="competition-self" hidden>
+        <div id="self-summary" class="card-list"></div>
+        <ol id="self-ranking" class="leaderboard"></ol>
+      </div>
+    </section>
 
-        <div>
-          <h3>Seneste 7 dage</h3>
-          <ul class="history-list" id="history-list" aria-live="polite"></ul>
-        </div>
-        <div>
-          <h3>Gennemførte missioner</h3>
-          <ul class="history-list" id="completed-missions"></ul>
-        </div>
-        <div>
-          <h3>Skridt og runder doneret til beboere</h3>
-          <ul class="history-list" id="donated-stats"></ul>
-        </div>
-      </section>
+    <section class="page" data-page="development" aria-labelledby="development-title">
+      <p class="eyebrow">Udvikling</p>
+      <h2 id="development-title">Trends og historik</h2>
+      <label class="field">Filtrér aktivitet<select id="development-filter"><option value="all">Alle aktiviteter</option></select></label>
+      <div id="bars-7" class="bars"></div>
+      <div id="bars-4" class="bars weekly"></div>
+      <div id="weekly-summary" class="card-list"></div>
+    </section>
 
-
-      <section class="mission-page app-section" data-page="missions" aria-labelledby="missions-title">
-        <p class="eyebrow">Vælg én omsorgsfuld opgave ad gangen</p>
-        <h2 id="missions-title">Missioner</h2>
-        <p>Du kan vælge, skifte, pause og fortsætte missioner. Delvis fremgang hjælper altid beboeren.</p>
-        <div id="mission-list" class="mission-list" aria-live="polite"></div>
-      </section>
-
-      <section class="profile-page app-section" data-page="profile" aria-labelledby="profile-title">
-        <p class="eyebrow">Valgfri første version</p>
-        <h2 id="profile-title">Profil</h2>
-        <p class="info-box">Disse oplysninger bruges senere til mere relevante mål og anonym statistik. Du kan springe dem over.</p>
-        <form id="profile-form" class="profile-form">
-          <label>Navn eller kaldenavn <input name="nickname" /></label>
-          <label>Fødselsår <input name="birthYear" type="number" inputmode="numeric" /></label>
-          <label>Højde <input name="height" type="number" inputmode="decimal" /></label>
-          <label>Vægt <input name="weight" type="number" inputmode="decimal" /></label>
-          <label>Biologisk køn <select name="sex"><option value="">Ønsker ikke at oplyse</option><option>Kvinde</option><option>Mand</option><option>Andet</option></select></label>
-          <label>Bopælsland <input name="country" /></label>
-          <label>Sprog <input name="language" value="Dansk" /></label>
-          <label>Enhed <select name="unit"><option>kg/cm</option><option>lb/ft</option></select></label>
-          <label><input id="setting-vibration" name="vibration" type="checkbox" checked /> Vibration til/fra</label>
-          <label><input id="setting-sound" name="sound" type="checkbox" checked /> Lydeffekter til/fra</label>
-          <label><input id="setting-voices" name="voices" type="checkbox" /> Beboerstemmer til/fra</label>
-          <button class="complete-button" type="submit">Gem profil lokalt</button>
-          <p id="profile-save-status" aria-live="polite"></p>
-        </form>
-        <section class="activity-preferences"><h3>Mine aktiviteter</h3><p>Slå aktiviteter til eller fra, og redigér dine personlige mål. Skridt og åndedrætsøvelser er slået til som standard.</p><div id="activity-settings-list"></div></section><p class="info-box">Landesammenligninger kommer senere, når der er nok anonyme brugerdata.</p>
-      </section>
-
-      <button type="button" class="reset-button" id="reset-points">Nulstil mine point</button>
-    </main>
-
-
-    <nav class="bottom-nav" aria-label="Hovedmenu">
-      <button type="button" data-nav="village">🏡<span>Landsby</span></button>
-      <button type="button" data-nav="missions">🎯<span>Missioner</span></button>
-      <button type="button" data-nav="activity">👣<span>Aktivitet</span></button>
-      <button type="button" data-nav="development">🌱<span>Udvikling</span></button>
-      <button type="button" data-nav="profile">♡<span>Profil</span></button>
-    </nav>
-
-    <script src="script.js"></script>
-  </body>
+    <section class="page" data-page="profile" aria-labelledby="profile-title">
+      <p class="eyebrow">Profil</p>
+      <h2 id="profile-title">Valgfrie oplysninger</h2>
+      <form id="profile-form" class="profile-form"></form>
+      <article class="card"><h3>Indstillinger</h3><div id="settings-form" class="profile-form"></div></article>
+      <article class="card"><h3>Datakilder</h3><ul class="plain-list"><li>Manuel registrering: aktiv</li><li>Health Connect: kommer senere</li><li>Skærmtidsdata: kommer senere</li><li>Lokation under ture: kommer senere</li><li>Wearables: kommer senere</li></ul></article>
+    </section>
+  </main>
+  <nav class="bottom-nav" aria-label="Hovednavigation">
+    <button class="active" data-nav="today">I dag</button><button data-nav="activities">Aktiviteter</button><button data-nav="competition">Konkurrence</button><button data-nav="development">Udvikling</button><button data-nav="profile">Profil</button>
+  </nav>
+  <script src="script.js"></script>
+</body>
 </html>
