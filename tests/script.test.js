@@ -152,3 +152,67 @@ function load(storage = new Map()) {
   t.archiveCompetition(c.id);
   assert.equal(c.status, 'archived');
 }
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.breathing.enabled = true;
+  t.state.activitySettings.meditation.enabled = true;
+  t.renderToday();
+  const html = map['#today-activity-cards'].innerHTML;
+  assert.ok(html.includes('Åndedræt'));
+  assert.ok(html.includes('Meditation'));
+  assert.equal(html.includes('Skridt'), false);
+  assert.equal(html.includes('Søvn'), false);
+  assert.equal((html.match(/<article class="card activity">/g) || []).length, 2);
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.state.activitySettings.steps.goal = 9000;
+  t.state.log.push({ id:'old-steps', date:'2026-07-13', activity:'steps', value:7000 });
+  t.state.log.push({ id:'old-sleep', date:'2026-07-13', activity:'sleep', value:7.5, hours:7.5 });
+  t.state.activitySettings.steps.enabled = false;
+  t.state.activitySettings.sleep.enabled = false;
+  t.renderToday();
+  let html = map['#today-activity-cards'].innerHTML;
+  assert.equal(html.includes('Skridt'), false);
+  assert.equal(html.includes('Søvn'), false);
+  assert.equal(t.state.log.length, 2);
+  assert.equal(t.state.activitySettings.steps.goal, 9000);
+  t.state.activitySettings.steps.enabled = true;
+  t.state.activitySettings.sleep.enabled = true;
+  t.renderToday();
+  html = map['#today-activity-cards'].innerHTML;
+  assert.ok(html.includes('Skridt'));
+  assert.ok(html.includes('Søvn'));
+  assert.ok(html.includes('9.000 skridt'));
+  assert.equal(t.state.log.length, 2);
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.renderToday();
+  const html = map['#today-activity-cards'].innerHTML;
+  assert.ok(html.includes('Du har endnu ikke valgt nogen aktiviteter.'));
+  assert.ok(html.includes('Vælg aktiviteter'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.renderActivities();
+  const html = map['#activity-manager'].innerHTML;
+  assert.ok(html.includes('class="checkbox-row"'));
+  assert.equal(html.includes('class="switch"'), false);
+  assert.equal(html.includes('> Aktiv</label>'), false);
+  assert.ok(html.includes('<span>Aktiv</span>'));
+  assert.ok(html.includes('<span>Streak til</span>'));
+  assert.ok(html.includes('<span>Streak-beskyttelse</span>'));
+  assert.ok(html.includes('<span>Brug automatisk streak-beskyttelse</span>'));
+  assert.ok(html.includes('<span>Minimum søvnlængde</span>'));
+}
