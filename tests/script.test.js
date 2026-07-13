@@ -154,6 +154,18 @@ function load(storage = new Map()) {
 }
 
 {
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.normalizeCompetitionType('others'), 'versus');
+  assert.equal(t.competitionTypeLabel('coop'), 'Samarbejde om fælles mål');
+  const c = t.createCompetition({ type:'coop', name:'Fælles skridt', activities:['dailyStepTarget'], startDate:'2026-07-13', endDate:'2026-07-19', participants:[{id:'bo',name:'Bo',demo:true}] });
+  assert.equal(c.type, 'coop');
+  assert.equal(t.isCoopCompetition(c), true);
+  assert.equal(c.settings.coopGoal, true);
+  assert.equal(c.participants.length, 2);
+}
+
+{
   const { context, map } = load();
   const t = context.window.__oneUpTest;
   Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
@@ -211,8 +223,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.7');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 15.57');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.4');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 16.10');
 }
 
 {
