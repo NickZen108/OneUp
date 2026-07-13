@@ -198,7 +198,11 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 9);
+  assert.equal(t.competitionActivityIds().length, 13);
+  assert.equal(t.competitionActivityIds().includes('sleep'), false);
+  assert.ok(t.competitionActivityIds().includes('sleepDuration'));
+  assert.ok(t.competitionActivityIds().includes('bedtime'));
+  assert.ok(t.competitionActivityIds().includes('wakeTime'));
   assert.equal(t.sanitizeActivityIds(['screenfree','socialfree','unknown']).join(','), 'screenFreeBeforeBed,socialMediaFree');
   const weights = t.defaultWeights(['steps','sleep','breathing']);
   assert.equal(`${weights.steps},${weights.sleep},${weights.breathing}`, '33.34,33.33,33.33');
@@ -207,8 +211,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.8.1');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 08.20');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.9.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 08.32');
 }
 
 {
@@ -223,7 +227,8 @@ function load(storage = new Map()) {
   assert.ok(html.includes('<span>Streak til</span>'));
   assert.ok(html.includes('<span>Streak-beskyttelse</span>'));
   assert.ok(html.includes('<span>Brug automatisk streak-beskyttelse</span>'));
-  assert.ok(html.includes('<span>Minimum søvnlængde</span>'));
+  assert.ok(html.includes('Søvnlængde'));
+  assert.equal(html.includes('Søvn</h3>'), false);
 }
 
 {
