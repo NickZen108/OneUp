@@ -4,7 +4,7 @@ const vm = require('node:vm');
 
 function el() { return { textContent:'', innerHTML:'', value:'', checked:false, hidden:false, options:[], classList:{toggle(){},add(){},remove(){}}, style:{}, dataset:{}, add(){ this.options.push(...arguments); }, addEventListener(){}, set onclick(v){this._onclick=v}, get onclick(){return this._onclick}, set onchange(v){this._onchange=v}, get onchange(){return this._onchange}, set onsubmit(v){this._onsubmit=v}, get onsubmit(){return this._onsubmit} }; }
 function load(storage = new Map()) {
-  const ids = ['oneup-score','today-points','header-points','goals-met','today-streak','encouragement','today-activity-cards','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
+  const ids = ['oneup-score','today-points','header-points','goals-met','today-streak','encouragement','today-goal-summary','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
   const map = Object.fromEntries(ids.map(id => [`#${id}`, el()]));
   map['#development-filter'].value = 'all';
   const context = {
@@ -160,12 +160,12 @@ function load(storage = new Map()) {
   t.state.activitySettings.breathing.enabled = true;
   t.state.activitySettings.meditation.enabled = true;
   t.renderToday();
-  const html = map['#today-activity-cards'].innerHTML;
-  assert.ok(html.includes('Åndedræt'));
-  assert.ok(html.includes('Meditation'));
+  const html = map['#today-goal-summary'].textContent;
+  assert.equal(html.includes('Åndedræt'), false);
+  assert.equal(html.includes('Meditation'), false);
   assert.equal(html.includes('Skridt'), false);
   assert.equal(html.includes('Søvn'), false);
-  assert.equal((html.match(/<article class="card activity">/g) || []).length, 2);
+  assert.ok(html.includes('aktive mål'));
 }
 
 {
@@ -174,22 +174,15 @@ function load(storage = new Map()) {
   t.state.activitySettings.steps.goal = 9000;
   t.state.log.push({ id:'old-steps', date:'2026-07-13', activity:'steps', value:7000 });
   t.state.log.push({ id:'old-sleep', date:'2026-07-13', activity:'sleep', value:7.5, hours:7.5 });
-  t.state.activitySettings.steps.enabled = false;
-  t.state.activitySettings.sleep.enabled = false;
-  t.renderToday();
-  let html = map['#today-activity-cards'].innerHTML;
-  assert.equal(html.includes('Skridt'), false);
-  assert.equal(html.includes('Søvn'), false);
-  assert.equal(t.state.log.length, 2);
-  assert.equal(t.state.activitySettings.steps.goal, 9000);
   t.state.activitySettings.steps.enabled = true;
   t.state.activitySettings.sleep.enabled = true;
   t.renderToday();
-  html = map['#today-activity-cards'].innerHTML;
-  assert.ok(html.includes('Skridt'));
-  assert.ok(html.includes('Søvn'));
-  assert.ok(html.includes('9.000 skridt'));
+  const html = map['#today-goal-summary'].textContent;
+  assert.equal(html.includes('Skridt'), false);
+  assert.equal(html.includes('Søvn'), false);
+  assert.equal(html.includes('9.000 skridt'), false);
   assert.equal(t.state.log.length, 2);
+  assert.equal(t.state.activitySettings.steps.goal, 9000);
 }
 
 {
@@ -197,9 +190,15 @@ function load(storage = new Map()) {
   const t = context.window.__oneUpTest;
   Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
   t.renderToday();
-  const html = map['#today-activity-cards'].innerHTML;
-  assert.ok(html.includes('Du har endnu ikke valgt nogen aktiviteter.'));
-  assert.ok(html.includes('Vælg aktiviteter'));
+  const html = map['#today-goal-summary'].textContent;
+  assert.ok(html.includes('Ingen aktive mål endnu.'));
+}
+
+{
+  const { context, map } = load();
+  context.window.__oneUpTest.renderVersion();
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.7.0');
+  assert.equal(map['#app-build-label'].textContent, 'Bygget 13. juli 2026 kl. 07.50');
 }
 
 {
