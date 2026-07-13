@@ -211,8 +211,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.1');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 11.26');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.2');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 11.37');
 }
 
 {
