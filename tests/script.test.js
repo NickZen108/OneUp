@@ -211,8 +211,15 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.2');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 11.37');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.11.3');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 11.12');
+}
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  assert.ok(source.includes('class="stepper-display"'));
+  assert.ok(source.includes('data-stepper-number="${id}"'));
+  assert.ok(source.includes('editor.querySelectorAll(`[data-stepper-number="${id}"]`)'));
 }
 
 {
