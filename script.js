@@ -1,5 +1,5 @@
-const APP_VERSION = "0.14.4";
-const APP_BUILD_TIME = "14. juli 2026 kl. 14.20";
+const APP_VERSION = "0.14.2";
+const APP_BUILD_TIME = "14. juli 2026 kl. 15.45";
 const APP_TIME_ZONE = 'Europe/Copenhagen';
 const APP_BUILD_LABEL = `Opdateret ${APP_BUILD_TIME}`;
 const DATA_VERSION = 2;
@@ -500,7 +500,7 @@ function openDurationPicker({ title='Vælg varighed', valueMinutes=0, minuteStep
   const commit=(next)=>{ if(!validate(next)){ showToast('Maksimum skal være større end eller lig minimum. Ret værdien før du fortsætter.',{duration:2400}); sync(); return; } current=normalizeDurationInput(next,maxMinutes,minuteStep); changed = changed || current!==before; onSave(current); sync(); };
   const step=(unit,delta)=>commit(durationStepValue(current,unit,delta,{minuteStep,maxHours}));
   const stopHold=()=>{ clearTimeout(holdTimer); clearInterval(holdInterval); holdTimer=holdInterval=null; setTimeout(()=>{ pointerStepped=false; },0); };
-  sheet.querySelectorAll('[data-duration-step]').forEach(b=>{ const [unit,delta]=b.dataset.durationStep.split(':'); const run=()=>step(unit,num(delta)); b.onclick=e=>{ consumeInteraction(e); if(!pointerStepped) run(); pointerStepped=false; }; b.onpointerdown=e=>{ consumeInteraction(e); pointerStepped=true; stopHold(); run(); holdTimer=setTimeout(()=>{ holdInterval=setInterval(run,120); },400); }; ['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>b.addEventListener(ev,stopHold)); });
+  sheet.querySelectorAll('[data-duration-step]').forEach(b=>{ const [unit,delta]=b.dataset.durationStep.split(':'); const run=()=>step(unit,Number(delta)||0); b.onclick=e=>{ consumeInteraction(e); if(!pointerStepped) run(); pointerStepped=false; }; b.onpointerdown=e=>{ consumeInteraction(e); pointerStepped=true; stopHold(); run(); holdTimer=setTimeout(()=>{ holdInterval=setInterval(run,120); },400); }; ['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>b.addEventListener(ev,stopHold)); });
   [h,m].forEach(input=>{ input.onchange=()=>{ const hours=clamp(num(h.value),0,maxHours), mins=normalizeDurationInput(m.value,55,minuteStep); commit(combineDuration(hours,mins)); }; });
   sheet.querySelectorAll('[data-duration-control]').forEach(el=>el.onkeydown=e=>{ const unit=el.dataset.durationControl; if(['ArrowRight','ArrowUp','+','='].includes(e.key)){ e.preventDefault(); step(unit,1); } else if(['ArrowLeft','ArrowDown','-'].includes(e.key)){ e.preventDefault(); step(unit,-1); } else if(e.key==='Escape'){ e.preventDefault(); close(sheet); } });
   sheet.querySelectorAll('[data-duration-quick]').forEach(b=>b.onclick=e=>{ consumeInteraction(e); commit(num(b.dataset.durationQuick)); });

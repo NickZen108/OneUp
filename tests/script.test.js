@@ -388,8 +388,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.4');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 14.20');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.2');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 15.45');
 }
 
 {
@@ -575,6 +575,8 @@ function load(storage = new Map()) {
   assert.equal(t.durationStepValue(175, 'minutes', 1), 180);
   assert.equal(t.durationStepValue(180, 'minutes', -1), 175);
   assert.equal(t.durationStepValue(0, 'minutes', -1), 0);
+  assert.equal(t.durationStepValue(120, 'minutes', -1), 115);
+  assert.equal(t.durationStepValue(55, 'minutes', 1), 60);
   assert.equal(t.formatDuration(200), '3 t. 20 min.');
 }
 
@@ -586,6 +588,7 @@ function load(storage = new Map()) {
   assert.ok(source.includes('onSave(current)'));
   assert.ok(source.includes('toast-action'));
   assert.ok(source.includes('pointerup'));
+  assert.ok(source.includes('Number(delta)||0'));
   assert.ok(source.includes('document.body.style.overflow=previousOverflow'));
   assert.ok(source.includes('validateDurationInterval'));
 }
