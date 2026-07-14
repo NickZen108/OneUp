@@ -4,17 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=0.12.7" />
+  <link rel="stylesheet" href="styles.css?v=0.12.8" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.12.7</p>
-        <p id="app-build-label" class="build-label">Opdateret 13. juli 2026 kl. 20.53</p>
+        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.12.8</p>
+        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 07.45</p>
         <h1>Din daglige sundhed</h1>
       </div>
-      <div class="pill"><span id="header-points">0</span> point</div>
+      <button
+        type="button"
+        class="header-profile-button"
+        data-open-profile
+        aria-label="Åbn profil"
+      >
+        <span class="header-profile-icon" aria-hidden="true">👤</span>
+        <span class="header-profile-text">Profil</span>
+      </button>
     </header>
 
     <section class="page active" data-page="today" aria-labelledby="today-title">
@@ -93,6 +101,6 @@
   <nav class="bottom-nav" aria-label="Hovednavigation">
     <button class="active" data-nav="today">I dag</button><button data-nav="activities">Aktiviteter</button><button data-nav="competition">Konkurrence</button><button data-nav="development">Udvikling</button><button data-nav="profile">Profil</button>
   </nav>
-  <script src="script.js?v=0.12.7"></script>
+  <script src="script.js?v=0.12.8"></script>
 </body>
 </html>
