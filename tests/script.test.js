@@ -388,8 +388,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.2');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 13.06');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.3');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 13.32');
 }
 
 {
@@ -548,4 +548,18 @@ function load(storage = new Map()) {
   assert.ok(source.includes("function goToHomeFromCompetition(){ setCompetitionDetailMode(false); selectedCompetitionId=null; showPage(competitionReturnPage==='today'?'today':'friends');"));
   assert.ok(source.includes("$('#competition-system')"));
   assert.ok(source.includes("$$('[data-go-home]').forEach(b=>b.onclick=goToHomeFromCompetition)"));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.formatDuration(30), '30 min.');
+  assert.equal(t.formatDuration(60), '1 t.');
+  assert.equal(t.formatDuration(90), '1 t. 30 min.');
+  assert.equal(t.formatDuration(180), '3 t.');
+  assert.equal(t.formatDuration(450), '7 t. 30 min.');
+  assert.equal(t.combineDuration(3, 0), 180);
+  assert.equal(t.combineDuration(1, 30), 90);
+  assert.equal(t.validateDurationInterval(420, 540), true);
+  assert.equal(t.validateDurationInterval(540, 420), false);
 }
