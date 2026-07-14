@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=0.14.0" />
+  <link rel="stylesheet" href="styles.css?v=0.14.1" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.14.0</p>
-        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 08.51</p>
+        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.14.1</p>
+        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 09.13</p>
         <h1>Din daglige sundhed</h1>
       </div>
       <button
@@ -31,19 +31,12 @@
           <div>
             <p class="eyebrow">I dag</p>
             <h2 id="today-title">Personlige mål</h2>
-            <p id="encouragement">Dit daglige overblik</p>
           </div>
-          <button type="button" data-edit-personal-goals>Indstil personlige mål</button>
+          <strong id="today-goal-summary" class="personal-goals-summary"></strong>
         </div>
-        <p id="today-goal-summary" class="personal-goals-summary">0 af 0 mål nået i dag</p>
         <div id="personal-goal-list" class="personal-goal-list"></div>
-        <button type="button" id="show-all-personal-goals" class="secondary personal-goals-more" hidden>Vis alle personlige mål</button>
-        <div class="personal-goal-chips">
-          <span><b id="today-points">0</b> point i dag</span>
-          <span><b id="today-streak">0 dage</b> streak</span>
-          <span>OneUp-score <b id="oneup-score">0</b>/100</span>
-          <span>Mål <b id="goals-met">0/0</b></span>
-        </div>
+        <button type="button" id="show-all-personal-goals" class="secondary personal-goals-more" hidden>Vis alle</button>
+        <button type="button" class="secondary personal-goals-edit" data-edit-personal-goals>Indstil personlige mål</button>
       </section>
       <section id="consistency-section" class="card consistency-card compact-secondary" aria-label="Konsistens"></section>
     </section>
@@ -110,6 +103,6 @@
     <button class="active" data-nav="today">I dag</button><button data-nav="activities">Aktiviteter</button><button data-nav="competition">Konkurrence</button><button data-nav="development">Udvikling</button>
   </nav>
   <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <script src="script.js?v=0.14.0"></script>
+  <script src="script.js?v=0.14.1"></script>
 </body>
 </html>

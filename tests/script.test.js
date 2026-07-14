@@ -4,7 +4,7 @@ const vm = require('node:vm');
 
 function el() { return { textContent:'', innerHTML:'', value:'', checked:false, hidden:false, options:[], classList:{toggle(){},add(){},remove(){}}, style:{}, dataset:{}, add(){ this.options.push(...arguments); }, addEventListener(){}, set onclick(v){this._onclick=v}, get onclick(){return this._onclick}, set onchange(v){this._onchange=v}, get onchange(){return this._onchange}, set onsubmit(v){this._onsubmit=v}, get onsubmit(){return this._onsubmit} }; }
 function load(storage = new Map()) {
-  const ids = ['oneup-score','today-points','goals-met','today-streak','encouragement','today-goal-summary','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
+  const ids = ['oneup-score','today-points','goals-met','today-streak','encouragement','today-goal-summary','personal-goal-list','show-all-personal-goals','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
   const map = Object.fromEntries(ids.map(id => [`#${id}`, el()]));
   map['#development-filter'].value = 'all';
   const context = {
@@ -218,7 +218,8 @@ function load(storage = new Map()) {
   assert.equal(html.includes('Meditation'), false);
   assert.equal(html.includes('Skridt'), false);
   assert.equal(html.includes('Søvn'), false);
-  assert.ok(html.includes('aktive mål'));
+  assert.equal(html, '');
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Ingen registreringer endnu i dag.'));
 }
 
 {
@@ -244,7 +245,49 @@ function load(storage = new Map()) {
   Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
   t.renderToday();
   const html = map['#today-goal-summary'].textContent;
-  assert.ok(html.includes('Ingen aktive mål endnu.'));
+  assert.equal(html, '');
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Ingen registreringer endnu i dag.'));
+}
+
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.state.log.push({ id:'steps-now', date:'2026-07-13', activity:'dailyStepTarget', value:6421 });
+  t.state.log.push({ id:'social-now', date:'2026-07-13', activity:'socialMediaFree', value:24 });
+  t.renderToday();
+  const html = map['#personal-goal-list'].innerHTML;
+  assert.ok(html.includes('Skridt'));
+  assert.ok(html.includes('6.421'));
+  assert.ok(html.includes('Tid på sociale medier'));
+  assert.ok(html.includes('24 min'));
+  assert.equal(html.includes('af 8.000'), false);
+  assert.equal(html.includes('progressbar'), false);
+  assert.equal(html.includes('Health Connect ikke forbundet'), false);
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  const acts = ['dailyStepTarget','socialMediaFree','meditation','breathing','strength','running','cycling','bedtime','sleepDuration'];
+  acts.forEach((activity, i) => t.state.log.push({ id:`many-${activity}`, date:'2026-07-13', activity, value: activity==='bedtime'?22.15:i+1, hours: activity==='sleepDuration'?7.5:undefined }));
+  t.renderToday();
+  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 6);
+  assert.equal(map['#show-all-personal-goals'].hidden, false);
+  map['#show-all-personal-goals'].onclick();
+  assert.ok((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length > 6);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.personalMetricDisplayValue('steps', {available:true, value:6421}), '6.421');
+  assert.equal(t.personalMetricDisplayValue('sleepDuration', {available:true, value:7.5}), '7,5 t');
+  assert.equal(t.personalMetricDisplayValue('bedtime', {available:true, value:22.15}), '22.15');
+  assert.equal(t.personalMetricDisplayValue('distance', {available:true, value:5.2}), '5,2 km');
+  assert.equal(t.personalMetricDisplayValue('strengthSets', {available:true, value:8}), '8 sæt');
+  assert.equal(t.personalMetricDisplayValue('restingHeartRate', {available:true, value:58}), '58 bpm');
+  assert.equal(t.personalMetricDisplayValue('heartRateVariability', {available:true, value:42}), '42 ms');
 }
 
 
@@ -273,8 +316,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.0');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 08.51');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.1');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 09.13');
 }
 
 {
