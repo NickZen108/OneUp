@@ -273,8 +273,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.13.0');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 08.08');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 08.51');
 }
 
 {
@@ -296,7 +296,7 @@ function load(storage = new Map()) {
   assert.ok(html.includes('<span>Streak til</span>'));
   assert.ok(html.includes('<span>Streak-beskyttelse</span>'));
   assert.ok(html.includes('<span>Brug automatisk streak-beskyttelse</span>'));
-  assert.equal(html.includes('Søvnlængde'), false);
+  assert.equal(html.includes('Søvnlængde'), true);
   assert.equal(html.includes('Søvn</h3>'), false);
 }
 
