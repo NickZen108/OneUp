@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=0.13.1" />
+  <link rel="stylesheet" href="styles.css?v=0.14.0" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.13.1</p>
-        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 11.32</p>
+        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.14.0</p>
+        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 12.21</p>
         <h1>Din daglige sundhed</h1>
       </div>
     </header>
@@ -65,8 +65,11 @@
       <p class="eyebrow">Udvikling</p>
       <h2 id="development-title">Trends og historik</h2>
       <label class="field">Filtrér aktivitet<select id="development-filter"><option value="all">Alle aktiviteter</option></select></label>
-      <div id="bars-7" class="bars"></div>
-      <div id="bars-4" class="bars weekly"></div>
+      <div id="development-charts" class="development-charts">
+        <div id="bars-7" class="bars"></div>
+        <div id="bars-8" class="bars weekly"></div>
+        <div id="bars-12" class="bars monthly"></div>
+      </div>
       <section id="streak-development" class="streak-development"></section>
       <div id="weekly-summary" class="card-list"></div>
     </section>
@@ -84,6 +87,6 @@
     </section>
   </main>
   <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <script src="script.js?v=0.13.1"></script>
+  <script src="script.js?v=0.14.0"></script>
 </body>
 </html>
