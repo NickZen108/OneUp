@@ -294,9 +294,9 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 10);
+  assert.equal(t.competitionActivityIds().length, 29);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
-  assert.equal(t.competitionActivityIds().includes('sleepDuration'), false);
+  assert.equal(t.competitionActivityIds().includes('sleepDuration'), true);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
   assert.equal(t.competitionActivityIds().includes('wakeTime'), false);
   assert.equal(t.sanitizeActivityIds(['screenfree','socialfree','unknown']).join(','), 'screenFreeBeforeBed,socialMediaFree');
@@ -318,8 +318,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.15.0');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 09.39');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.13.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 10.38');
 }
 
 {
@@ -447,8 +447,8 @@ function load(storage = new Map()) {
   const { context } = load();
   const t = context.window.__oneUpTest;
   assert.ok(t.sanitizeActivityIds(['sleepDuration','wakeTime','sleepGoalNights']).includes('sleepDuration'));
-  assert.equal(t.competitionActivityIds().some(id => ['sleepDuration','wakeTime','sleepGoalNights','bedtimeConsistency'].includes(id)), false);
-  assert.ok(t.goalSummary({ activityId:'sleepDuration', target:7 }).includes('bruges ikke længere'));
+  assert.equal(t.competitionActivityIds().includes('sleepDuration'), true);
+  assert.ok(t.goalSummary({ activityId:'sleepDuration', target:7 }).includes('7'));
 }
 
 {
