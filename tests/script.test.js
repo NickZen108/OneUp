@@ -4,7 +4,7 @@ const vm = require('node:vm');
 
 function el() { return { textContent:'', innerHTML:'', value:'', checked:false, hidden:false, options:[], classList:{toggle(){},add(){},remove(){}}, style:{}, dataset:{}, add(){ this.options.push(...arguments); }, addEventListener(){}, set onclick(v){this._onclick=v}, get onclick(){return this._onclick}, set onchange(v){this._onchange=v}, get onchange(){return this._onchange}, set onsubmit(v){this._onsubmit=v}, get onsubmit(){return this._onsubmit} }; }
 function load(storage = new Map()) {
-  const ids = ['oneup-score','today-points','header-points','goals-met','today-streak','encouragement','today-goal-summary','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
+  const ids = ['oneup-score','today-points','goals-met','today-streak','encouragement','today-goal-summary','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
   const map = Object.fromEntries(ids.map(id => [`#${id}`, el()]));
   map['#development-filter'].value = 'all';
   const context = {
@@ -262,10 +262,19 @@ function load(storage = new Map()) {
 }
 
 {
+  const html = fs.readFileSync('index.html','utf8');
+  const source = fs.readFileSync('script.js','utf8');
+  assert.equal(html.includes('id="header-points"'), false);
+  assert.equal(source.includes('#header-points'), false);
+  assert.ok(html.includes('data-open-profile'));
+  assert.ok(source.includes("showPage('profile')"));
+}
+
+{
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.7');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 13. juli 2026 kl. 20.53');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.12.8');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 07.45');
 }
 
 {
