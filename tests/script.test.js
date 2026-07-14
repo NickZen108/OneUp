@@ -294,6 +294,74 @@ function load(storage = new Map()) {
 
 
 {
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.setPersonalMetricEnabled('socialMediaTime', true);
+  assert.equal(t.state.personalGoals.socialMediaTime.enabled, true);
+  assert.equal(t.state.personalGoals.socialMediaTime.front, true);
+  assert.equal(t.state.activitySettings.socialMediaFree.enabled, true);
+  t.renderActivities();
+  assert.ok(map['#activity-manager'].innerHTML.includes('data-personal-enabled="socialMediaTime" type="checkbox" checked'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.setPersonalMetricEnabled('socialMediaTime', true);
+  t.setPersonalMetricEnabled('socialMediaTime', false);
+  assert.equal(t.state.personalGoals.socialMediaTime.enabled, false);
+  assert.equal(t.state.personalGoals.socialMediaTime.front, false);
+  assert.equal(t.state.activitySettings.socialMediaFree.enabled, false);
+  t.renderActivities();
+  assert.ok(!map['#activity-manager'].innerHTML.includes('data-personal-enabled="socialMediaTime" type="checkbox" checked'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.setPersonalMetricEnabled('totalScreenTime', true);
+  assert.equal(t.state.personalGoals.totalScreenTime.enabled, true);
+  assert.equal(t.state.personalGoals.totalScreenTime.front, true);
+  assert.equal(t.state.activitySettings.totalScreenTime, undefined);
+  t.renderActivities();
+  assert.ok(map['#activity-manager'].innerHTML.includes('data-personal-enabled="totalScreenTime" type="checkbox" checked'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.setPersonalMetricEnabled('steps', true);
+  assert.equal(t.state.personalGoals.steps.enabled, true);
+  assert.equal(t.state.activitySettings.dailyStepTarget.enabled, true);
+  t.renderActivities();
+  assert.ok(map['#activity-manager'].innerHTML.includes('data-personal-enabled="steps" type="checkbox" checked'));
+  t.setPersonalMetricEnabled('steps', false);
+  assert.equal(t.state.personalGoals.steps.enabled, false);
+  assert.equal(t.state.activitySettings.dailyStepTarget.enabled, false);
+  t.renderActivities();
+  assert.ok(!map['#activity-manager'].innerHTML.includes('data-personal-enabled="steps" type="checkbox" checked'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for (const [metricId, metric] of Object.entries(t.personalMetrics)) {
+    if (metric.activity) assert.ok(t.activities[metric.activity], `${metricId} maps to existing activity ${metric.activity}`);
+  }
+}
+
+{
+  const storage = new Map();
+  let loaded = load(storage);
+  loaded.context.window.__oneUpTest.setPersonalMetricEnabled('meditationMinutes', true);
+  loaded = load(storage);
+  const t = loaded.context.window.__oneUpTest;
+  assert.equal(t.state.personalGoals.meditationMinutes.enabled, true);
+  assert.equal(t.state.personalGoals.meditationMinutes.front, true);
+  assert.equal(t.state.activitySettings.meditation.enabled, true);
+}
+
+{
   const { context } = load();
   const t = context.window.__oneUpTest;
   assert.equal(t.competitionActivityIds().length, 29);
@@ -320,8 +388,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.1');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 12.46');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.2');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 13.06');
 }
 
 {
