@@ -4,26 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=0.14.1" />
+  <link rel="stylesheet" href="styles.css?v=0.15.0" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.14.1</p>
-        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 09.13</p>
+        <p id="app-version-label" class="eyebrow">OneUp Prototype · v0.15.0</p>
+        <p id="app-build-label" class="build-label">Opdateret 14. juli 2026 kl. 09.39</p>
         <h1>Din daglige sundhed</h1>
       </div>
-      <button
-        type="button"
-        class="header-profile-button"
-        data-open-profile
-        aria-label="Åbn profil"
-      >
-        <span class="header-profile-icon" aria-hidden="true">👤</span>
-        <span class="header-profile-text">Profil</span>
-      </button>
     </header>
+
+    <nav class="floating-top-nav" aria-label="Hovednavigation">
+      <button type="button" class="active" data-main-nav="today"><span aria-hidden="true">⌂</span><span>Forside</span></button>
+      <button type="button" data-main-nav="friends"><span aria-hidden="true">👥</span><span>Venner</span></button>
+      <button type="button" data-main-nav="profile"><span aria-hidden="true">👤</span><span>Profil</span></button>
+    </nav>
 
     <section class="page active" data-page="today" aria-labelledby="today-title">
       <section id="personal-goals-card" class="personal-goals-card" aria-labelledby="today-title">
@@ -36,12 +33,14 @@
         </div>
         <div id="personal-goal-list" class="personal-goal-list"></div>
         <button type="button" id="show-all-personal-goals" class="secondary personal-goals-more" hidden>Vis alle</button>
-        <button type="button" class="secondary personal-goals-edit" data-edit-personal-goals>Indstil personlige mål</button>
+        <div class="button-row personal-goals-actions"><button type="button" class="secondary personal-goals-edit" data-edit-personal-goals>Indstil personlige mål</button><button type="button" class="secondary personal-goals-edit" data-open-development>Se udvikling</button></div>
       </section>
-      <section id="consistency-section" class="card consistency-card compact-secondary" aria-label="Konsistens"></section>
+      <section id="versus-home-card" class="social-home-card versus-home-card" aria-labelledby="versus-home-title"></section>
+      <section id="coop-home-card" class="social-home-card coop-home-card" aria-labelledby="coop-home-title"></section>
     </section>
 
     <section class="page" data-page="activities" aria-labelledby="activities-title">
+      <button type="button" class="secondary page-back" data-main-nav="today">← Forside</button>
       <p class="eyebrow">Aktiviteter</p>
       <h2 id="activities-title">Vælg, mål og registrér</h2>
       <div id="activity-manager" class="card-list"></div>
@@ -58,27 +57,12 @@
       <article class="card"><h3>Registreringer i dag</h3><ul id="entry-list" class="plain-list"></ul></article>
     </section>
 
-    <section class="page" data-page="competition" aria-labelledby="competition-title">
+    <section class="page" data-page="friends" aria-labelledby="friends-title">
       <section id="competition-system"></section>
-      <div id="legacy-competition-overview">
-        <p class="eyebrow">Konkurrence</p>
-        <h2 id="competition-title">Sund konkurrence</h2>
-        <div class="segmented" role="tablist"><button class="active" data-competition="others">Mod andre</button><button data-competition="self">Mod mig selv</button></div>
-        <div id="competition-others">
-          <label class="field">Gruppe<select id="group-select"><option>Venner</option><option>Familie</option><option>Arbejdsplads</option></select></label>
-          <label class="field">Konkurrenceform<select id="competition-type"></select></label>
-          <p class="info-box">Eksempelpersonerne er demo-data. Rigtige grupper og invitationer kræver login senere.</p>
-          <button id="create-group">Opret gruppe</button><p id="group-message" class="muted"></p>
-          <ol id="leaderboard" class="leaderboard"></ol>
-        </div>
-        <div id="competition-self" hidden>
-          <div id="self-summary" class="card-list"></div>
-          <ol id="self-ranking" class="leaderboard"></ol>
-        </div>
-      </div>
     </section>
 
     <section class="page" data-page="development" aria-labelledby="development-title">
+      <button type="button" class="secondary page-back" data-main-nav="today">← Forside</button>
       <p class="eyebrow">Udvikling</p>
       <h2 id="development-title">Trends og historik</h2>
       <label class="field">Filtrér aktivitet<select id="development-filter"><option value="all">Alle aktiviteter</option></select></label>
@@ -97,12 +81,10 @@
         <button id="profile-save-button" class="profile-save-button" type="submit"><span class="save-text-full">Gem profil og indstillinger</span><span class="save-text-short">Gem ændringer</span></button>
       </form>
       <article class="card"><h3>Datakilder</h3><ul class="plain-list"><li>Manuel registrering: aktiv</li><li>Health Connect: kommer senere</li><li>Skærmtidsdata: kommer senere</li><li>Lokation under ture: kommer senere</li><li>Wearables: kommer senere</li></ul></article>
+      <article id="account-data-section" class="card account-data-card"></article>
     </section>
   </main>
-  <nav class="bottom-nav" aria-label="Hovednavigation">
-    <button class="active" data-nav="today">I dag</button><button data-nav="activities">Aktiviteter</button><button data-nav="competition">Konkurrence</button><button data-nav="development">Udvikling</button>
-  </nav>
   <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <script src="script.js?v=0.14.1"></script>
+  <script src="script.js?v=0.15.0"></script>
 </body>
 </html>

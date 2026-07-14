@@ -309,15 +309,17 @@ function load(storage = new Map()) {
   const source = fs.readFileSync('script.js','utf8');
   assert.equal(html.includes('id="header-points"'), false);
   assert.equal(source.includes('#header-points'), false);
-  assert.ok(html.includes('data-open-profile'));
-  assert.ok(source.includes("showPage('profile')"));
+  assert.equal(html.includes('data-open-profile'), false);
+  assert.ok(html.includes('data-main-nav="profile"'));
+  assert.ok(source.includes("showPage('profile')") || source.includes('dataMainNav'));
+  assert.equal(html.includes('bottom-nav'), false);
 }
 
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.1');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 09.13');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.15.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 09.39');
 }
 
 {
@@ -471,7 +473,7 @@ function load(storage = new Map()) {
   assert.ok(source.includes('class="detail-navigation"'));
   assert.ok(source.includes('data-go-home aria-label="Tilbage til forsiden"'));
   assert.equal(source.includes('Detaljeside</p><h2>${c.name}</h2>'), false);
-  assert.ok(source.includes("function goToHomeFromCompetition(){ setCompetitionDetailMode(false); selectedCompetitionId=null; showPage('today');"));
-  assert.ok(source.includes("$('#competition-home-section')"));
+  assert.ok(source.includes("function goToHomeFromCompetition(){ setCompetitionDetailMode(false); selectedCompetitionId=null; showPage(competitionReturnPage==='today'?'today':'friends');"));
+  assert.ok(source.includes("$('#competition-system')"));
   assert.ok(source.includes("$$('[data-go-home]').forEach(b=>b.onclick=goToHomeFromCompetition)"));
 }
