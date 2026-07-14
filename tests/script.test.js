@@ -253,6 +253,7 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
+  t.state.activitySettings.socialMediaFree.enabled = true;
   t.state.log.push({ id:'steps-now', date:'2026-07-13', activity:'dailyStepTarget', value:6421 });
   t.state.log.push({ id:'social-now', date:'2026-07-13', activity:'socialMediaFree', value:24 });
   t.renderToday();
@@ -270,6 +271,7 @@ function load(storage = new Map()) {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
   const acts = ['dailyStepTarget','socialMediaFree','meditation','breathing','strength','running','cycling','bedtime','sleepDuration'];
+  acts.forEach(activity => { if(t.state.activitySettings[activity]) t.state.activitySettings[activity].enabled = true; });
   acts.forEach((activity, i) => t.state.log.push({ id:`many-${activity}`, date:'2026-07-13', activity, value: activity==='bedtime'?22.15:i+1, hours: activity==='sleepDuration'?7.5:undefined }));
   t.renderToday();
   assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 6);
@@ -318,8 +320,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.0');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 12.21');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.1');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 12.46');
 }
 
 {
@@ -337,7 +339,9 @@ function load(storage = new Map()) {
   assert.ok(html.includes('class="checkbox-row"'));
   assert.equal(html.includes('class="switch"'), false);
   assert.equal(html.includes('> Aktiv</label>'), false);
-  assert.ok(html.includes('<span>Aktiv</span>'));
+  assert.ok(html.includes('class="activity-title-row"'));
+  assert.ok(html.includes('data-toggle="dailyStepTarget"'));
+  assert.equal(html.includes('Vis på forsiden'), false);
   assert.ok(html.includes('<span>Streak til</span>'));
   assert.ok(html.includes('<span>Streak-beskyttelse</span>'));
   assert.ok(html.includes('<span>Brug automatisk streak-beskyttelse</span>'));
