@@ -388,8 +388,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.3');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 13.32');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.4');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 14.20');
 }
 
 {
@@ -562,4 +562,30 @@ function load(storage = new Map()) {
   assert.equal(t.combineDuration(1, 30), 90);
   assert.equal(t.validateDurationInterval(420, 540), true);
   assert.equal(t.validateDurationInterval(540, 420), false);
+}
+
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.durationStepValue(120, 'hours', 1), 180);
+  assert.equal(t.durationStepValue(180, 'hours', -1), 120);
+  assert.equal(t.durationStepValue(20, 'minutes', 1), 25);
+  assert.equal(t.durationStepValue(20, 'minutes', -1), 15);
+  assert.equal(t.durationStepValue(175, 'minutes', 1), 180);
+  assert.equal(t.durationStepValue(180, 'minutes', -1), 175);
+  assert.equal(t.durationStepValue(0, 'minutes', -1), 0);
+  assert.equal(t.formatDuration(200), '3 t. 20 min.');
+}
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  assert.ok(source.includes('data-duration-step="hours:1"'));
+  assert.ok(source.includes('data-duration-step="minutes:1"'));
+  assert.ok(source.includes('data-duration-quick'));
+  assert.ok(source.includes('onSave(current)'));
+  assert.ok(source.includes('toast-action'));
+  assert.ok(source.includes('pointerup'));
+  assert.ok(source.includes('document.body.style.overflow=previousOverflow'));
+  assert.ok(source.includes('validateDurationInterval'));
 }
