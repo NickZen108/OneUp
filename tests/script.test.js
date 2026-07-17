@@ -9,9 +9,9 @@ function load(storage = new Map()) {
   map['#development-filter'].value = 'all';
   const context = {
     localStorage:{ getItem:k=>storage.has(k)?storage.get(k):null, setItem:(k,v)=>storage.set(k,String(v)), removeItem:k=>storage.delete(k) },
-    window:{ __oneUpNow:()=>new Date('2026-07-13T12:00:00Z'), setInterval(){return 1}, clearInterval(){} },
+    window:{ __oneUpNow:()=>new Date('2026-07-13T12:00:00Z'), setInterval(){return 1}, clearInterval(){}, setTimeout(fn){ if(typeof fn==='function') fn(); return 1; }, clearTimeout(){} },
     document:{ readyState:'complete', body:el(), addEventListener(){}, querySelector:s=>map[s] || el(), querySelectorAll:s=>[], createElement:()=>el() },
-    Option:function(text,value){ return {text,value}; }, FormData:function(){ return []; }, prompt:()=>null, setInterval(){return 1}, clearInterval(){}
+    Option:function(text,value){ return {text,value}; }, FormData:function(){ return []; }, prompt:()=>null, setInterval(){return 1}, clearInterval(){}, setTimeout(fn){ if(typeof fn==='function') fn(); return 1; }, clearTimeout(){}, requestAnimationFrame(fn){ if(typeof fn==='function') fn(); return 1; }, setTimeout(fn){ if(typeof fn==='function') fn(); return 1; }, clearTimeout(){}
   };
   vm.runInNewContext(fs.readFileSync('script.js','utf8'), context);
   return { context, storage, map };
@@ -388,8 +388,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.13.2');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret: 17. juli 2026 kl. 21.08');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.13.3');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret: 17. juli 2026 kl. 21.20');
 }
 
 {
@@ -620,4 +620,94 @@ function load(storage = new Map()) {
   assert.ok(source.includes('Number(delta)||0'));
   assert.ok(source.includes('document.body.style.overflow=previousOverflow'));
   assert.ok(source.includes('validateDurationInterval'));
+}
+
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const e1 = t.addBodyMeasurement('bodyFat', '18.5', '2026-07-13');
+  assert.equal(e1.unit, '%');
+  assert.equal(e1.week, 29);
+  assert.equal(t.state.log.length, 1);
+  const e2 = t.addBodyMeasurement('bodyFat', '18.1', '2026-07-15');
+  assert.equal(e2.id, e1.id);
+  assert.equal(t.state.log.length, 1);
+  assert.equal(t.state.log[0].value, 18.1);
+  assert.equal(t.addBodyMeasurement('bodyFat', 71, '2026-07-15'), false);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  t.addBodyMeasurement('muscleMass', '34.8', '2026-07-13');
+  t.addBodyMeasurement('muscleMass', '35.2', '2026-07-20');
+  assert.equal(t.state.log.length, 2);
+  assert.equal(t.measurementStatus('muscleMass','2026-07-20').change.toFixed(1), '0.4');
+  assert.equal(t.addBodyMeasurement('muscleMass', 4.9, '2026-07-20'), false);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.copenhagenDateKey(new Date('2026-03-29T21:59:00Z')), '2026-03-29');
+  assert.equal(t.copenhagenDateKey(new Date('2026-03-29T22:01:00Z')), '2026-03-30');
+  assert.notEqual(t.measurementWeekKey('bodyFat','2026-07-19'), t.measurementWeekKey('bodyFat','2026-07-20'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for(let i=0;i<7;i++) t.state.log.push({id:`m${i}`,date:t.day(i,'2026-07-01'),activity:'meditation',value:1});
+  t.recalc();
+  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='meditation-7')).met, true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for(let i=0;i<7;i++) t.state.log.push({id:`s${i}`,date:t.day(i,'2026-07-01'),activity:'dailyStepTarget',value:10000});
+  for(let i=0;i<30;i++) t.state.log.push({id:`s15${i}`,date:t.day(i,'2026-06-01'),activity:'dailyStepTarget',value:15000});
+  t.recalc();
+  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='steps-10k-7')).met, true);
+  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='steps-15k-30')).met, true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for(let i=0;i<7;i++) t.state.log.push({id:`old${i}`,date:t.day(i,'2026-06-01'),activity:'sleepScore',value:70});
+  for(let i=0;i<7;i++) t.state.log.push({id:`new${i}`,date:t.day(i,'2026-06-10'),activity:'sleepScore',value:80});
+  t.recalc();
+  const p=t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='sleep-above-avg-7'));
+  assert.equal(p.met, true);
+  assert.equal(Math.round(p.meta.reference), 70);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for(let i=0;i<7;i++){ const d=t.day(i,'2026-07-01'); t.state.log.push({id:`m${i}`,date:d,activity:'meditation',value:1},{id:`b${i}`,date:d,activity:'breathing',value:1}); }
+  t.recalc();
+  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='mindful-breath-7')).met, true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for(let w=0;w<4;w++) for(let i=0;i<3;i++) t.state.log.push({id:`str${w}-${i}`,date:t.day(w*7+i,'2026-06-01'),activity:'strength',value:1});
+  t.recalc();
+  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='strength-3x-4w')).met, true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  for(let i=0;i<7;i++) t.state.log.push({id:`m${i}`,date:t.day(i,'2026-07-01'),activity:'meditation',value:1});
+  t.recalc();
+  const first=t.evaluateTrophies({retroactive:true}).length;
+  const second=t.evaluateTrophies({retroactive:true}).length;
+  assert.equal(first >= 1, true);
+  assert.equal(second, 0);
+  assert.ok(t.state.trophies.earned['meditation-7']);
 }
