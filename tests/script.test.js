@@ -388,8 +388,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v0.14.2');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret 14. juli 2026 kl. 15.45');
+  assert.equal(map['#app-version-label'].textContent, 'OneUp Prototype · v1.11.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret 17. juli 2026 kl. 15.05');
 }
 
 {
@@ -397,6 +397,35 @@ function load(storage = new Map()) {
   assert.ok(source.includes('class="stepper-display"'));
   assert.ok(source.includes('data-stepper-number="${id}"'));
   assert.ok(source.includes('editor.querySelectorAll(`[data-stepper-number="${id}"]`)'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.meditation.enabled = true;
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.activitySettings.meditation.goalPeriod = 'daily';
+  t.state.activitySettings.meditation.targetCount = 2;
+  t.state.activitySettings.meditation.goal = 2;
+  t.state.log.push({ id:'m1', date:'2026-07-13', activity:'meditation', value:1 });
+  t.state.log.push({ id:'s1', date:'2026-07-13', activity:'dailyStepTarget', value:6000 });
+  assert.equal(t.heroScore('daily','2026-07-13').percent, 63);
+  t.state.log.push({ id:'m2', date:'2026-07-13', activity:'meditation', value:5 });
+  assert.equal(t.heroGoalItems('daily','2026-07-13').find(i=>i.id==='meditation').percent, 100);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.breathing.enabled = true;
+  t.state.activitySettings.breathing.goalPeriod = 'weekly';
+  t.state.activitySettings.breathing.targetCount = 4;
+  ['2026-07-13','2026-07-14','2026-07-15'].forEach((d,i)=>t.state.log.push({ id:`b${i}`, date:d, activity:'breathing', value:1, mode:'box' }));
+  const item = t.heroGoalItems('weekly','2026-07-15').find(i=>i.id==='breathing');
+  assert.equal(item.percent, 75);
+  assert.equal(item.label.includes('3/4'), true);
 }
 
 {
