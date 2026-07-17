@@ -4,16 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=1.11.0" />
+  <link rel="stylesheet" href="styles.css?v=1.12.0" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <p id="app-version-label" class="eyebrow">OneUp Prototype · v1.11.0</p>
-        <p id="app-build-label" class="build-label">Opdateret 17. juli 2026 kl. 15.05</p>
+        <p id="app-version-label" class="eyebrow">OneUp Prototype · v1.12.0</p>
+        <p id="app-build-label" class="build-label">Opdateret 17. juli 2026 kl. 15.50</p>
         <h1>Din daglige sundhed</h1>
       </div>
+      <button type="button" class="account-top-button" data-open-account>Profil</button>
     </header>
 
     <nav class="floating-top-nav" aria-label="Hovednavigation">
@@ -23,6 +24,7 @@
     </nav>
 
     <section class="page active" data-page="today" aria-labelledby="today-title">
+      <section id="account-summary" class="account-summary-card"></section>
       <div id="hero-score-home"></div>
       <section id="personal-goals-card" class="personal-goals-card" aria-labelledby="today-title">
         <div class="personal-goals-head">
@@ -88,6 +90,6 @@
     </section>
   </main>
   <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <script src="script.js?v=1.11.0"></script>
+  <script src="script.js?v=1.12.0"></script>
 </body>
 </html>
