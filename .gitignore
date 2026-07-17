@@ -1,0 +1,18 @@
+node_modules/
+
+# Web build output
+dist/
+
+# Android/Gradle build output and local state
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+
+# Local IDE/editor files
+.idea/
+.vscode/
+*.iml
+.DS_Store
