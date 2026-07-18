@@ -3,7 +3,7 @@ package dk.oneup.app;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.health.connect.client.HealthConnectClient;
 import androidx.health.connect.client.permission.HealthPermission;
-import androidx.health.connect.client.permission.PermissionController;
+import androidx.health.connect.client.PermissionController;
 import androidx.health.connect.client.records.StepsRecord;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
