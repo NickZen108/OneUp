@@ -409,8 +409,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.13.9');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret: 18. juli 2026 kl. 16.47');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.14.0');
+  assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 18.00'));
 }
 
 {
@@ -731,4 +732,31 @@ function load(storage = new Map()) {
   assert.equal(first >= 1, true);
   assert.equal(second, 0);
   assert.ok(t.state.trophies.earned['meditation-7']);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const range = t.healthConnectLocalDayRange(new Date('2026-01-15T23:30:00Z'), 'Europe/Copenhagen');
+  assert.equal(range.startLocal, '2026-01-16T00:00:00');
+  assert.equal(range.timeZone, 'Europe/Copenhagen');
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.running.enabled = true;
+  t.state.activitySettings.caloriesBurned.enabled = true;
+  assert.equal(t.healthConnectTypesForEnabledActivities().sort().join(','), 'activeCalories,distance');
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  t.state.healthConnect.permissions.distance = false;
+  assert.equal(t.healthConnectStatusForActivity('running').status, 'Tilladelse mangler');
+  t.state.healthConnect.permissions.distance = true;
+  t.state.healthConnect.values.distance = 0;
+  assert.equal(t.healthConnectStatusForActivity('running').status, 'Ingen data endnu');
 }
