@@ -32,6 +32,27 @@ function load(storage = new Map()) {
 
 {
   const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.stairs.enabled = true;
+  t.state.activitySettings.stairs.goalPeriod = 'daily';
+  t.state.activitySettings.stairs.targetCount = 300;
+  t.state.activitySettings.stairs.goal = 300;
+  t.state.activitySettings.stairs.direction = 'up';
+  t.state.log.push({ id:'su', date:'2026-07-13', activity:'stairs', activityType:'stairs', direction:'up', goalPeriod:'daily', targetCount:300, completedCount:150, value:150, timestamp:'2026-07-13T10:20:00.000Z' });
+  t.state.log.push({ id:'sd', date:'2026-07-13', activity:'stairs', activityType:'stairs', direction:'down', goalPeriod:'daily', targetCount:300, completedCount:200, value:200, timestamp:'2026-07-13T10:21:00.000Z' });
+  t.recalc();
+  assert.equal(t.heroScore('daily','2026-07-13').percent, 50);
+  t.state.activitySettings.stairs.direction = 'combined';
+  assert.equal(t.heroScore('daily','2026-07-13').percent, 100);
+  t.state.activitySettings.stairs.goalPeriod = 'weekly';
+  t.state.activitySettings.stairs.targetCount = 1000;
+  t.state.activitySettings.stairs.goal = 1000;
+  assert.equal(t.heroScore('weekly','2026-07-13').percent, 35);
+}
+
+{
+  const { context } = load();
   context.window.__oneUpTest.state.activitySettings.sleep.enabled = true;
   context.window.__oneUpTest.state.log.push({ id:'s', date:'2026-07-13', activity:'steps', value:8000 });
   context.window.__oneUpTest.state.log.push({ id:'b', date:'2026-07-13', activity:'breathing', value:3, mode:'box' });
@@ -364,7 +385,7 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 29);
+  assert.equal(t.competitionActivityIds().length, 30);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
   assert.equal(t.competitionActivityIds().includes('sleepDuration'), true);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
@@ -388,8 +409,8 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.13.3');
-  assert.equal(map['#app-build-label'].textContent, 'Opdateret: 17. juli 2026 kl. 21.20');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.14.0');
+  assert.equal(map['#app-build-label'].textContent, 'Opdateret: 18. juli 2026 kl. 10.20');
 }
 
 {
