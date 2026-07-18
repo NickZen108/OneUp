@@ -1,20 +1,19 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
 }
 
 apply from: '../variables.gradle'
 
 android {
     namespace 'dk.oneup.app'
-    compileSdk 36
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         applicationId 'dk.oneup.app'
-        minSdk 23
-        targetSdk 36
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName '1.13.6'
+        versionName '1.13.7'
     }
 }
 
