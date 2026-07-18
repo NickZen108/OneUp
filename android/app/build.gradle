@@ -13,8 +13,8 @@ android {
         applicationId 'dk.oneup.app'
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName '1.13.9'
+        versionCode 2
+        versionName '1.14.0'
     }
 
     compileOptions {
