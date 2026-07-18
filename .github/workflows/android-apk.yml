@@ -43,12 +43,7 @@ jobs:
           gradle-version: 8.14.4
 
       - name: Install npm dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm ci
 
       - name: Build web app
         run: npm run build
