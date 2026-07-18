@@ -1,5 +1,5 @@
-const APP_VERSION = "1.13.7";
-const APP_BUILD_TIME = "18. juli 2026 kl. 13.30";
+const APP_VERSION = "1.13.8";
+const APP_BUILD_TIME = "18. juli 2026 kl. 16.32";
 const APP_TIME_ZONE = 'Europe/Copenhagen';
 const APP_BUILD_LABEL = `Opdateret: ${APP_BUILD_TIME}`;
 const DATA_VERSION = 2;
