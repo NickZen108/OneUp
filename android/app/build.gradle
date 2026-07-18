@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
 }
 
+apply from: '../variables.gradle'
+
 android {
     namespace 'dk.oneup.app'
     compileSdk 35
@@ -11,10 +13,11 @@ android {
         minSdk 23
         targetSdk 35
         versionCode 1
-        versionName '1.0'
+        versionName '1.13.3'
     }
 }
 
 dependencies {
     implementation project(':capacitor-android')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
 }
