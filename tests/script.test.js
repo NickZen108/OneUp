@@ -239,8 +239,8 @@ function load(storage = new Map()) {
   assert.equal(html.includes('Meditation'), false);
   assert.equal(html.includes('Skridt'), false);
   assert.equal(html.includes('Søvn'), false);
-  assert.equal(html, '');
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Ingen registreringer endnu i dag.'));
+  assert.equal(html, '0 af 2');
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Ingen data endnu'));
 }
 
 {
@@ -267,22 +267,22 @@ function load(storage = new Map()) {
   t.renderToday();
   const html = map['#today-goal-summary'].textContent;
   assert.equal(html, '');
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Ingen registreringer endnu i dag.'));
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Du har ingen aktive målinger endnu.'));
 }
 
 
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
-  t.state.activitySettings.socialMediaFree.enabled = true;
+  t.state.activitySettings.breathing.enabled = true;
   t.state.log.push({ id:'steps-now', date:'2026-07-13', activity:'dailyStepTarget', value:6421 });
-  t.state.log.push({ id:'social-now', date:'2026-07-13', activity:'socialMediaFree', value:24 });
+  t.state.log.push({ id:'breathing-now', date:'2026-07-13', activity:'breathing', value:2 });
   t.renderToday();
   const html = map['#personal-goal-list'].innerHTML;
   assert.ok(html.includes('Skridt'));
   assert.ok(html.includes('6.421'));
-  assert.ok(html.includes('Tid på sociale medier'));
-  assert.ok(html.includes('24 min'));
+  assert.ok(html.includes('Åndedrætsøvelser'));
+  assert.ok(html.includes('2'));
   assert.equal(html.includes('af 8.000'), true);
   assert.equal(html.includes('progressbar'), false);
   assert.equal(html.includes('Health Connect ikke forbundet'), false);
@@ -291,14 +291,12 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
-  const acts = ['dailyStepTarget','socialMediaFree','meditation','breathing','strength','running','cycling','bedtime','sleepDuration'];
+  const acts = ['dailyStepTarget','meditation','breathing','strength','running','cycling'];
   acts.forEach(activity => { if(t.state.activitySettings[activity]) t.state.activitySettings[activity].enabled = true; });
   acts.forEach((activity, i) => t.state.log.push({ id:`many-${activity}`, date:'2026-07-13', activity, value: activity==='bedtime'?22.15:i+1, hours: activity==='sleepDuration'?7.5:undefined }));
   t.renderToday();
-  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 6);
-  assert.equal(map['#show-all-personal-goals'].hidden, false);
-  map['#show-all-personal-goals'].onclick();
-  assert.ok((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length > 6);
+  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 5);
+  assert.equal(map['#show-all-personal-goals'].hidden, true);
 }
 
 {
@@ -318,11 +316,11 @@ function load(storage = new Map()) {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
   t.setPersonalMetricEnabled('socialMediaTime', true);
-  assert.equal(t.state.personalGoals.socialMediaTime.enabled, true);
-  assert.equal(t.state.personalGoals.socialMediaTime.front, true);
-  assert.equal(t.state.activitySettings.socialMediaFree.enabled, true);
+  assert.equal(t.state.personalGoals.socialMediaTime.enabled, false);
+  assert.equal(t.state.personalGoals.socialMediaTime.front, false);
+  assert.equal(t.state.activitySettings.socialMediaFree.enabled, false);
   t.renderActivities();
-  assert.ok(map['#activity-manager'].innerHTML.includes('data-personal-enabled="socialMediaTime" type="checkbox" checked'));
+  assert.ok(!map['#activity-manager'].innerHTML.includes('data-personal-enabled="socialMediaTime" type="checkbox" checked'));
 }
 
 {
@@ -341,11 +339,11 @@ function load(storage = new Map()) {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
   t.setPersonalMetricEnabled('totalScreenTime', true);
-  assert.equal(t.state.personalGoals.totalScreenTime.enabled, true);
-  assert.equal(t.state.personalGoals.totalScreenTime.front, true);
-  assert.equal(t.state.activitySettings.totalScreenTime.enabled, true);
+  assert.equal(t.state.personalGoals.totalScreenTime.enabled, false);
+  assert.equal(t.state.personalGoals.totalScreenTime.front, false);
+  assert.equal(t.state.activitySettings.totalScreenTime.enabled, false);
   t.renderActivities();
-  assert.ok(map['#activity-manager'].innerHTML.includes('data-personal-enabled="totalScreenTime" type="checkbox" checked'));
+  assert.ok(!map['#activity-manager'].innerHTML.includes('data-personal-enabled="totalScreenTime" type="checkbox" checked'));
 }
 
 {
@@ -411,7 +409,7 @@ function load(storage = new Map()) {
   context.window.__oneUpTest.renderVersion();
   assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.0');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 18.32'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 19.21'));
 }
 
 {
@@ -864,4 +862,79 @@ function load(storage = new Map()) {
   assert.ok(status.label.includes('over dit valgte mål'));
   const c = t.createCompetition({ type:'versus', name:'Lavest social', activities:['socialMediaFree'], startDate:'2026-07-13', endDate:'2026-07-13', participants:[{id:'bo',name:'Bo',demo:true}] });
   assert.equal(t.goalSummary(c.activityGoals.socialMediaFree).includes('Jo mindre jo bedre'), true);
+}
+
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  assert.equal(t.activityCanToggle('breathing'), true);
+  t.setPersonalMetricEnabled('breathingActivities', true);
+  assert.equal(t.state.activitySettings.breathing.enabled, true); // available can be toggled on
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Ingen data endnu'));
+  t.setPersonalMetricEnabled('breathingActivities', false);
+  assert.equal(t.state.activitySettings.breathing.enabled, false); // available can be toggled off
+  assert.equal(t.state.log.length, 0); // history is not deleted by disabling
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  t.state.log.push({ id:'b', date:'2026-07-13', activity:'breathing', value:1 });
+  t.setPersonalMetricEnabled('breathingActivities', true);
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  t.setPersonalMetricEnabled('breathingActivities', false);
+  t.renderToday();
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  assert.equal(t.state.log.length, 1); // historical data is preserved
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.activityCanToggle('totalScreenTime'), false);
+  t.state.activitySettings.totalScreenTime.enabled = true;
+  t.renderActivities();
+  assert.equal(t.state.activitySettings.totalScreenTime.enabled, false);
+  assert.ok(map['#activity-manager'].innerHTML.includes('Kommer senere'));
+  assert.ok(map['#activity-manager'].innerHTML.includes('aria-disabled="true"'));
+  t.renderToday();
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Samlet skærmtid'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.healthConnect = { connected:false, permissions:{ steps:false }, values:{}, steps:null };
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Tilladelse mangler') || t.healthConnectStatusForActivity('dailyStepTarget').status === 'Tilladelse mangler');
+}
+
+{
+  const { context, map } = load(new Map([
+    ['oneupActivitySettingsV2', JSON.stringify({ breathing:{ enabled:true }, totalScreenTime:{ enabled:true } })],
+    ['oneupPersonalGoalsV1', JSON.stringify({ breathingActivities:{ enabled:true, front:true }, totalScreenTime:{ enabled:true, front:true } })]
+  ]));
+  const t = context.window.__oneUpTest;
+  assert.equal(t.state.activitySettings.breathing.enabled, true);
+  assert.equal(t.state.activitySettings.totalScreenTime.enabled, false);
+  assert.equal(t.state.personalGoals.totalScreenTime.enabled, false);
+  t.renderToday();
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Samlet skærmtid'));
+}
+
+{
+  const { context } = load(new Map([
+    ['oneupActivitySettingsV2', '[]'],
+    ['oneupPersonalGoalsV1', '[]']
+  ]));
+  const t = context.window.__oneUpTest;
+  assert.equal(typeof t.state.activitySettings.breathing, 'object');
+  assert.equal(t.state.personalGoals && typeof t.state.personalGoals, 'object');
 }
