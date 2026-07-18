@@ -343,7 +343,7 @@ function load(storage = new Map()) {
   t.setPersonalMetricEnabled('totalScreenTime', true);
   assert.equal(t.state.personalGoals.totalScreenTime.enabled, true);
   assert.equal(t.state.personalGoals.totalScreenTime.front, true);
-  assert.equal(t.state.activitySettings.totalScreenTime, undefined);
+  assert.equal(t.state.activitySettings.totalScreenTime.enabled, true);
   t.renderActivities();
   assert.ok(map['#activity-manager'].innerHTML.includes('data-personal-enabled="totalScreenTime" type="checkbox" checked'));
 }
@@ -385,7 +385,7 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 30);
+  assert.equal(t.competitionActivityIds().length, 32);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
   assert.equal(t.competitionActivityIds().includes('sleepDuration'), true);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
@@ -409,9 +409,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.15.1');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.0');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 17.40'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 18.32'));
 }
 
 {
@@ -818,4 +818,50 @@ function load(storage = new Map()) {
   assert.ok(Array.isArray(state.log));
   assert.ok(state.retention);
   assert.ok(state.healthConnect);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.appCategory('com.instagram.android'), 'Social');
+  assert.equal(t.appCategory('com.netflix.mediaclient'), 'Streaming');
+  assert.equal(t.appCategory('com.android.systemui'), 'System / ignoreret');
+  t.state.screenTimeCategories.overrides['com.google.android.youtube'] = 'Social';
+  assert.equal(t.appCategory('com.google.android.youtube'), 'Social');
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  t.storeScreenTimeResult({ granted:true, startTimeMs: Date.parse('2026-07-13T00:00:00+02:00'), endTimeMs: Date.parse('2026-07-13T12:00:00+02:00'), apps:[
+    { packageName:'com.instagram.android', appLabel:'Instagram', foregroundTimeMs: 45*60000 },
+    { packageName:'com.netflix.mediaclient', appLabel:'Netflix', foregroundTimeMs: 90*60000 },
+    { packageName:'com.android.systemui', appLabel:'System UI', foregroundTimeMs: 999*60000 },
+    { packageName:'dk.oneup.app', appLabel:'OneUp', foregroundTimeMs: 30*60000 },
+    { packageName:'com.todoist', appLabel:'Todoist', foregroundTimeMs: 30*1000 }
+  ]});
+  assert.equal(t.screenTimeTotal('social','2026-07-13'), 45);
+  assert.equal(t.screenTimeTotal('streaming','2026-07-13'), 90);
+  assert.equal(t.screenTimeTotal('total','2026-07-13'), 135);
+  assert.equal(t.personalMetricValue('socialMediaTime','2026-07-13').value, 45);
+  assert.equal(t.personalMetricValue('streamingTime','2026-07-13').value, 90);
+}
+
+{
+  const { context } = load(new Map([['oneupScreenTimeV1','not-json']]));
+  const t = context.window.__oneUpTest;
+  assert.equal(Object.keys(t.state.screenTime.days).length, 0);
+  assert.equal(t.screenTimeTotal('total','2026-07-13'), 0);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  t.storeScreenTimeResult({ granted:true, startTimeMs: Date.parse('2026-07-13T00:00:00+02:00'), endTimeMs: Date.parse('2026-07-13T23:00:00+02:00'), apps:[{ packageName:'com.instagram.android', foregroundTimeMs: 150*60000 }]});
+  t.state.personalGoals.socialMediaTime = { enabled:true, target:45, direction:'maximum' };
+  const status = t.personalGoalStatus('socialMediaTime', t.personalMetricValue('socialMediaTime','2026-07-13'), t.state.personalGoals.socialMediaTime);
+  assert.equal(status.reached, false);
+  assert.ok(status.label.includes('over dit valgte mål'));
+  const c = t.createCompetition({ type:'versus', name:'Lavest social', activities:['socialMediaFree'], startDate:'2026-07-13', endDate:'2026-07-13', participants:[{id:'bo',name:'Bo',demo:true}] });
+  assert.equal(t.goalSummary(c.activityGoals.socialMediaFree).includes('Jo mindre jo bedre'), true);
 }
