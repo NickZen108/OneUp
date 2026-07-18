@@ -9,8 +9,5 @@
     "@capacitor/cli": "^7.4.2",
     "@capacitor/core": "^7.4.2",
     "firebase": "^11.10.0"
-  },
-  "devDependencies": {
-    "typescript": "6.0.2"
   }
 }
