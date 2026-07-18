@@ -283,7 +283,7 @@ function load(storage = new Map()) {
   assert.ok(html.includes('6.421'));
   assert.ok(html.includes('Tid på sociale medier'));
   assert.ok(html.includes('24 min'));
-  assert.equal(html.includes('af 8.000'), false);
+  assert.equal(html.includes('af 8.000'), true);
   assert.equal(html.includes('progressbar'), false);
   assert.equal(html.includes('Health Connect ikke forbundet'), false);
 }
@@ -409,9 +409,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.14.0');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.15.0');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 18.00'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 17.21'));
 }
 
 {
@@ -759,4 +759,27 @@ function load(storage = new Map()) {
   t.state.healthConnect.permissions.distance = true;
   t.state.healthConnect.values.distance = 0;
   assert.equal(t.healthConnectStatusForActivity('running').status, 'Ingen data endnu');
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const lvl = t.levelForXp(140);
+  assert.equal(lvl.level, 2);
+  assert.equal(lvl.totalXp, 140);
+  assert.equal(lvl.remaining > 0, true);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.personalGoals.steps = { enabled:true, front:true, target:8000, direction:'minimum' };
+  t.state.log.push({ id:'s1', date:'2026-07-13', activity:'dailyStepTarget', value:8000 });
+  t.recalc();
+  const xpAfterFirst = t.state.retention.xp.total;
+  t.recalc();
+  assert.equal(t.state.retention.xp.total, xpAfterFirst);
+  assert.equal(t.state.retention.streak.current, 1);
 }
