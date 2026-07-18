@@ -75,3 +75,17 @@ html{overflow-x:hidden}body{overflow-x:hidden;background:radial-gradient(circle 
 .history-tabs{margin:0 0 var(--space-4)}#development-charts[data-history-mode="weekly"] #bars-12{display:none}#development-charts[data-history-mode="monthly"] #bars-8{display:none}
 
 .trophy-home-card,.trophy-section{scroll-margin-top:5rem}.trophy-grid{display:grid;gap:0.75rem}.trophy-card{display:flex;gap:0.75rem;align-items:flex-start;border:2px solid #345;box-shadow:0 2px 10px rgba(0,0,0,.12);border-radius:1rem;padding:0.9rem;background:#fff;color:#102030}.trophy-card.locked{opacity:.72;filter:grayscale(.25)}.trophy-card h4{margin:.1rem 0}.trophy-card p{margin:.2rem 0}.trophy-icon{font-size:2rem;line-height:1}.level-bronze{border-color:#9a5a22}.level-silver{border-color:#697586}.level-gold{border-color:#b7791f}.level-platinum{border-color:#5b7cfa}.level-legendary{border-color:#7c3aed}.trophy-modal .modal-card{max-height:85vh;overflow:auto;animation:trophy-pop .25s ease-out}.measurement-controls .goal-input-wrap{margin-top:.35rem}@keyframes trophy-pop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}@media(max-width:420px){.trophy-card{padding:.75rem}.trophy-icon{font-size:1.6rem}}
+
+/* v1.14.0 sticky navigation and golden trophy card polish */
+.app-shell{padding-top:max(var(--space-4),calc(env(safe-area-inset-top) + 12px));scroll-padding-top:calc(104px + env(safe-area-inset-top))}
+.floating-top-nav{top:max(0px,env(safe-area-inset-top));z-index:3000;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(250,248,255,.96));border-color:rgba(255,255,255,.95);box-shadow:0 16px 38px rgba(33,22,83,.18),0 2px 0 rgba(255,255,255,.9) inset;backdrop-filter:blur(22px) saturate(1.2);-webkit-backdrop-filter:blur(22px) saturate(1.2)}
+.page{scroll-margin-top:calc(112px + env(safe-area-inset-top))}
+.trophy-home-card{position:relative;overflow:hidden;background:linear-gradient(160deg,#fff4cf 0%,#f3d98d 42%,#d99a2b 72%,#9b5f22 100%);color:#2b1605;border:1px solid rgba(129,75,13,.28);box-shadow:0 24px 55px rgba(117,74,14,.24),inset 0 1px 0 rgba(255,255,255,.72)}
+.trophy-home-card::before{content:'';position:absolute;inset:-35% 45% 35% -20%;background:radial-gradient(circle,rgba(255,255,255,.55),transparent 58%);transform:rotate(-18deg);pointer-events:none}
+.trophy-home-card .social-card-head,.trophy-home-card p,.trophy-home-card .progress,.trophy-home-card button{position:relative;z-index:1}
+.trophy-home-card h2{color:#241100;text-shadow:0 1px 0 rgba(255,255,255,.38)}
+.trophy-home-card p{color:#3a2108;font-weight:850}
+.trophy-home-card .eyebrow{color:#5f3305}
+.trophy-home-card .progress{height:.9rem;background:rgba(72,42,10,.22);border:1px solid rgba(72,42,10,.20)}
+.trophy-home-card .progress span{background:linear-gradient(90deg,#5b3410,#8d531b 52%,#23164f);box-shadow:0 0 18px rgba(91,52,16,.25)}
+.trophy-home-card button{background:linear-gradient(135deg,#28194f,#5b3410)!important;color:#fff!important;border:1px solid rgba(255,244,207,.35);box-shadow:0 12px 26px rgba(43,22,5,.24)}
