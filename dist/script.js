@@ -1,5 +1,5 @@
-const APP_VERSION = "1.15.0";
-const APP_BUILD_TIME = "18. juli 2026 kl. 17.21";
+const APP_VERSION = "1.15.1";
+const APP_BUILD_TIME = "18. juli 2026 kl. 17.40";
 const APP_TIME_ZONE = 'Europe/Copenhagen';
 const APP_BUILD_LABEL = `Opdateret: ${APP_BUILD_TIME}`;
 function copenhagenNowText(now=new Date()){ return new Intl.DateTimeFormat('da-DK',{dateStyle:'medium',timeStyle:'short',timeZone:APP_TIME_ZONE}).format(now).replace(':','.'); }
