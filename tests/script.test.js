@@ -407,9 +407,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.17.0');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.1');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 20.04'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 20.41'));
 }
 
 {
@@ -1047,4 +1047,59 @@ function load(storage = new Map()) {
   const { context } = load(new Map([['oneupHealthConnectV1', '{broken']]));
   const t = context.window.__oneUpTest;
   assert.equal(t.activityAvailabilityStatus('dailyStepTarget').connectionStatus, 'permissionRequired');
+}
+
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  let parsed = t.parseOneUpInviteUrl('https://nickzen108.github.io/OneUp/join/competition/AbC123');
+  assert.equal(parsed.type, 'competition'); assert.equal(parsed.inviteToken, 'AbC123');
+  parsed = t.parseOneUpInviteUrl('https://nickzen108.github.io/OneUp/?join=collaboration&invite=XyZ987');
+  assert.equal(parsed.type, 'collaboration'); assert.equal(parsed.inviteToken, 'XyZ987');
+  parsed = t.parseOneUpInviteUrl('oneup://join/competition/TOKEN-42');
+  assert.equal(parsed.type, 'competition'); assert.equal(parsed.inviteToken, 'TOKEN-42');
+  assert.equal(t.parseOneUpInviteUrl('https://nickzen108.github.io/OneUp/?join=bad&invite=1'), null);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const c = t.createCompetition({ type:'versus', name:'Sommer “Sprint” & styrke', activities:['dailyStepTarget'], startDate:'2026-07-18', endDate:'2026-07-25', participants:[] });
+  const vm = t.invitationViewModel(c);
+  assert.equal(vm.type, 'competition');
+  assert.equal(vm.title, 'Sommer “Sprint” & styrke');
+  assert.ok(t.inviteUrlFor(c).includes('?join=competition&invite='));
+  assert.ok(vm.inviteCode.includes('-'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const c = t.createCompetition({ type:'coop', name:'Fælles mål', activities:['breathing'], startDate:'2026-07-18', endDate:'2026-07-25', participants:[] });
+  assert.equal(t.invitationViewModel(c).type, 'collaboration');
+  assert.ok(t.inviteUrlFor(c).includes('?join=collaboration&invite='));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const c = t.createCompetition({ type:'versus', name:'Dublet', activities:['dailyStepTarget'], participants:[] });
+  c.creator = 'owner'; c.participants = [];
+  const token = c.invite.token;
+  const first = t.InviteRepository.joinInvite('competition', token);
+  const second = t.InviteRepository.joinInvite('competition', token);
+  assert.equal(first.ok, true);
+  assert.equal(second.already, true);
+  assert.equal(c.participants.filter(p => p.id === 'you').length, 1);
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const c = t.createCompetition({ type:'versus', name:'Forny', activities:['dailyStepTarget'], participants:[] });
+  const old = c.invite.token;
+  t.InviteRepository.regenerateInvite(c);
+  assert.notEqual(c.invite.token, old);
+  assert.ok(c.invite.revokedTokens.includes(old));
 }
