@@ -61,7 +61,7 @@ class OneUpHealthConnectPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun requestPermissions(call: PluginCall) {
+    fun requestHealthPermissions(call: PluginCall) {
         if (!isAvailable()) {
             call.reject(unavailableMessage())
             return
