@@ -12,10 +12,13 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.util.Collections;
 import java.util.Set;
+import kotlin.jvm.JvmClassMappingKt;
 
 @CapacitorPlugin(name = "OneUpHealthConnect")
 public class OneUpHealthConnectPlugin extends Plugin {
-    private final String stepPermission = HealthPermission.getReadPermission(StepsRecord.class);
+    private final String stepPermission = HealthPermission.getReadPermission(
+        JvmClassMappingKt.getKotlinClass(StepsRecord.class)
+    );
     private final Set<String> permissions = Collections.singleton(stepPermission);
     private PluginCall permissionCall;
     private ActivityResultLauncher<Set<String>> permissionLauncher;
