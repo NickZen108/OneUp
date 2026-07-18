@@ -239,8 +239,8 @@ function load(storage = new Map()) {
   assert.equal(html.includes('Meditation'), false);
   assert.equal(html.includes('Skridt'), false);
   assert.equal(html.includes('Søvn'), false);
-  assert.equal(html, '');
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Der måles endnu ingen aktiviteter.'));
+  assert.equal(html, '0 af 1');
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
 }
 
 {
@@ -267,7 +267,7 @@ function load(storage = new Map()) {
   t.renderToday();
   const html = map['#today-goal-summary'].textContent;
   assert.equal(html, '');
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Der måles endnu ingen aktiviteter.'));
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Vælg aktiviteter under'));
 }
 
 
@@ -295,7 +295,7 @@ function load(storage = new Map()) {
   acts.forEach(activity => { if(t.state.activitySettings[activity]) t.state.activitySettings[activity].enabled = true; });
   acts.forEach((activity, i) => t.state.log.push({ id:`many-${activity}`, date:'2026-07-13', activity, value: activity==='bedtime'?22.15:i+1, hours: activity==='sleepDuration'?7.5:undefined }));
   t.renderToday();
-  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 3);
+  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 1);
   assert.equal(map['#show-all-personal-goals'].hidden, true);
 }
 
@@ -407,9 +407,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.1');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.2');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 20.41'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 22.58'));
 }
 
 {
@@ -753,10 +753,11 @@ function load(storage = new Map()) {
   const { context } = load();
   const t = context.window.__oneUpTest;
   t.state.healthConnect.permissions.distance = false;
-  assert.equal(t.healthConnectStatusForActivity('running').status, 'Tilladelse mangler');
+  assert.equal(t.healthConnectStatusForActivity('running').status, 'Health Connect ikke forbundet');
   t.state.healthConnect.permissions.distance = true;
+  t.state.healthConnect.connected = true;
   t.state.healthConnect.values.distance = 0;
-  assert.equal(t.healthConnectStatusForActivity('running').status, 'Ingen kompatibel app eller wearable fundet');
+  assert.equal(t.healthConnectStatusForActivity('running').status, 'Ingen data registreret i dag');
 }
 
 {
@@ -874,7 +875,7 @@ function load(storage = new Map()) {
   t.setPersonalMetricEnabled('breathingActivities', true);
   assert.equal(t.state.activitySettings.breathing.enabled, true); // available can be toggled on
   t.renderToday();
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Der måles endnu ingen aktiviteter.'));
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
   t.setPersonalMetricEnabled('breathingActivities', false);
   assert.equal(t.state.activitySettings.breathing.enabled, false); // available can be toggled off
   assert.equal(t.state.log.length, 0); // history is not deleted by disabling
@@ -913,7 +914,7 @@ function load(storage = new Map()) {
   t.state.activitySettings.dailyStepTarget.enabled = true;
   t.state.healthConnect = { connected:false, permissions:{ steps:false }, values:{}, steps:null };
   t.renderToday();
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Tilladelse mangler') || t.healthConnectStatusForActivity('dailyStepTarget').status === 'Tilladelse mangler');
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Health Connect ikke forbundet') || t.healthConnectStatusForActivity('dailyStepTarget').status === 'Health Connect ikke forbundet');
 }
 
 {
@@ -959,10 +960,10 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  t.state.healthConnect = { permissions:{ steps:true }, values:{}, availability:{ steps:{dataAvailable:false} } };
+  t.state.healthConnect = { connected:true, permissions:{ steps:true }, values:{}, availability:{ steps:{dataAvailable:false} } };
   t.state.activitySettings.dailyStepTarget.enabled = true;
-  assert.equal(t.isActivityEligibleForHome('dailyStepTarget'), false);
-  assert.equal(t.activityAvailabilityStatus('dailyStepTarget').label, 'Ingen kompatibel app eller wearable fundet');
+  assert.equal(t.isActivityEligibleForHome('dailyStepTarget'), true);
+  assert.equal(t.activityAvailabilityStatus('dailyStepTarget').label, 'Ingen data registreret i dag');
 }
 
 {
@@ -998,7 +999,7 @@ function load(storage = new Map()) {
   const t = context.window.__oneUpTest;
   t.state.healthConnect = { permissions:{ steps:true }, values:{ steps:0 }, availability:{ steps:{dataAvailable:false} } };
   t.state.activitySettings.dailyStepTarget.enabled = true;
-  assert.equal(t.isActivityEligibleForHome('dailyStepTarget'), false);
+  assert.equal(t.isActivityEligibleForHome('dailyStepTarget'), true);
   t.state.healthConnect.values.steps = 7000;
   t.state.healthConnect.availability.steps = { dataAvailable:true };
   assert.equal(t.isActivityEligibleForHome('dailyStepTarget'), true);
@@ -1028,7 +1029,7 @@ function load(storage = new Map()) {
   const t = context.window.__oneUpTest;
   t.state.healthConnect = { permissions:{ floorsClimbed:true }, values:{ floorsClimbed:0 }, availability:{ floorsClimbed:{dataAvailable:false} } };
   t.state.activitySettings.stairsUp.enabled = true;
-  assert.equal(t.isActivityEligibleForHome('stairsUp'), false);
+  assert.equal(t.isActivityEligibleForHome('stairsUp'), true);
   assert.equal(t.activityAvailabilityStatus('stairsDown').implementationStatus, 'comingSoon');
   assert.equal(t.activityAvailabilityStatus('stairsTotal').implementationStatus, 'comingSoon');
 }
@@ -1046,7 +1047,7 @@ function load(storage = new Map()) {
 {
   const { context } = load(new Map([['oneupHealthConnectV1', '{broken']]));
   const t = context.window.__oneUpTest;
-  assert.equal(t.activityAvailabilityStatus('dailyStepTarget').connectionStatus, 'permissionRequired');
+  assert.equal(t.activityAvailabilityStatus('dailyStepTarget').connectionStatus, 'notConnected');
 }
 
 
@@ -1102,4 +1103,95 @@ function load(storage = new Map()) {
   t.InviteRepository.regenerateInvite(c);
   assert.notEqual(c.invite.token, old);
   assert.ok(c.invite.revokedTokens.includes(old));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  Object.keys(t.state.personalGoals).forEach(id => { t.state.personalGoals[id].enabled = false; t.state.personalGoals[id].front = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.personalGoals.steps = { enabled:true, front:true, target:8000, direction:'minimum' };
+  t.state.healthConnect = { connected:false, permissions:{ steps:false }, values:{}, availability:{} };
+  t.renderToday();
+  assert.equal(t.heroScore('daily','2026-07-13').total, 0);
+  assert.equal(map['#personal-goal-list'].innerHTML.includes('Skridt'), false);
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Dine valgte aktiviteter kan endnu ikke måles.'));
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Kontrollér forbindelser'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.personalGoals.steps = { enabled:true, front:true, target:8000, direction:'minimum' };
+  t.state.healthConnect = { connected:true, permissions:{ steps:true }, values:{ steps:3200 }, availability:{ steps:{dataAvailable:true} } };
+  t.renderToday();
+  assert.equal(t.heroScore('daily','2026-07-13').total, 1);
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Skridt'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.personalGoals.steps = { enabled:true, front:true, target:8000, direction:'minimum' };
+  t.state.healthConnect = { connected:true, permissions:{ steps:false }, values:{ steps:3200 }, availability:{ steps:{dataAvailable:true} } };
+  t.renderToday();
+  assert.equal(t.heroScore('daily','2026-07-13').total, 0);
+  assert.equal(map['#personal-goal-list'].innerHTML.includes('Skridt'), false);
+  assert.equal(t.activityAvailabilityStatus('dailyStepTarget').label, 'Tillad adgang til skridt for at vise aktiviteten på forsiden.');
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.personalGoals.steps = { enabled:true, front:true, target:8000, direction:'minimum' };
+  t.state.healthConnect = { connected:true, permissions:{ steps:true }, values:{ steps:0 }, availability:{ steps:{dataAvailable:false} } };
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Skridt'));
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('0'));
+  assert.equal(t.heroScore('daily','2026-07-13').total, 1);
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.breathing.enabled = true;
+  t.state.personalGoals.breathingActivities = { enabled:true, front:true, target:1, direction:'minimum' };
+  t.state.healthConnect = { connected:false, permissions:{}, values:{}, availability:{} };
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  Object.keys(t.state.personalGoals).forEach(id => { t.state.personalGoals[id].enabled = false; t.state.personalGoals[id].front = false; });
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Vælg aktiviteter under'));
+}
+
+{
+  const { context, map } = load();
+  const t = context.window.__oneUpTest;
+  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
+  t.state.activitySettings.dailyStepTarget.enabled = true;
+  t.state.personalGoals.steps = { enabled:true, front:true, target:8000, direction:'minimum' };
+  t.state.healthConnect = { connected:false, permissions:{ steps:false }, values:{}, availability:{} };
+  t.renderToday();
+  assert.equal(map['#personal-goal-list'].innerHTML.includes('Skridt'), false);
+  t.state.healthConnect = { connected:true, permissions:{ steps:true }, values:{ steps:1000 }, availability:{ steps:{dataAvailable:true} } };
+  t.renderToday();
+  assert.ok(map['#personal-goal-list'].innerHTML.includes('Skridt'));
+  t.state.healthConnect.connected = false;
+  t.renderToday();
+  assert.equal(map['#personal-goal-list'].innerHTML.includes('Skridt'), false);
+  assert.equal(t.heroScore('daily','2026-07-13').total, 0);
 }
