@@ -8,8 +8,13 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.FloorsClimbedRecord
+import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
+import androidx.health.connect.client.records.RestingHeartRateRecord
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.AggregateRequest
+import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -31,7 +36,11 @@ class OneUpHealthConnectPlugin : Plugin() {
         "steps" to HealthPermission.getReadPermission(StepsRecord::class),
         "distance" to HealthPermission.getReadPermission(DistanceRecord::class),
         "activeCalories" to HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-        "exerciseDuration" to HealthPermission.getReadPermission(ExerciseSessionRecord::class)
+        "exerciseDuration" to HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+        "sleepDuration" to HealthPermission.getReadPermission(SleepSessionRecord::class),
+        "restingHeartRate" to HealthPermission.getReadPermission(RestingHeartRateRecord::class),
+        "hrv" to HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
+        "floorsClimbed" to HealthPermission.getReadPermission(FloorsClimbedRecord::class)
     )
     private val readStepsPermission = permissionByType.getValue("steps")
     private var permissionCall: PluginCall? = null
@@ -147,6 +156,7 @@ class OneUpHealthConnectPlugin : Plugin() {
                     if (allowed.contains("distance")) add(DistanceRecord.DISTANCE_TOTAL)
                     if (allowed.contains("activeCalories")) add(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)
                     if (allowed.contains("exerciseDuration")) add(ExerciseSessionRecord.EXERCISE_DURATION_TOTAL)
+                    if (allowed.contains("floorsClimbed")) add(FloorsClimbedRecord.FLOORS_CLIMBED_TOTAL)
                 }
                 val result = if (metrics.isEmpty()) null else client.aggregate(AggregateRequest(metrics = metrics, timeRangeFilter = TimeRangeFilter.between(start, end)))
                 JSObject()
@@ -158,6 +168,10 @@ class OneUpHealthConnectPlugin : Plugin() {
                     .put("distanceKm", result?.get(DistanceRecord.DISTANCE_TOTAL)?.inKilometers ?: 0.0)
                     .put("activeCaloriesKcal", result?.get(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.inKilocalories ?: 0.0)
                     .put("exerciseDurationMinutes", (result?.get(ExerciseSessionRecord.EXERCISE_DURATION_TOTAL)?.seconds ?: 0L) / 60.0)
+                    .put("floorsClimbed", result?.get(FloorsClimbedRecord.FLOORS_CLIMBED_TOTAL) ?: 0.0)
+                    .put("sleepDurationHours", if (allowed.contains("sleepDuration")) latestSleepHours(client) else 0.0)
+                    .put("restingHeartRate", if (allowed.contains("restingHeartRate")) latestRestingHeartRate(client) else 0.0)
+                    .put("hrvRmssd", if (allowed.contains("hrv")) latestHrvRmssd(client) else 0.0)
                     .put("source", "Health Connect")
                     .put("startTime", start.toString())
                     .put("endTime", end.toString())
@@ -174,6 +188,24 @@ class OneUpHealthConnectPlugin : Plugin() {
             context.startActivity(intent)
         }.onSuccess { call.resolve(JSObject().put("opened", true)) }
             .onFailure { call.reject("Health Connect-indstillinger kunne ikke åbnes.") }
+    }
+
+    private suspend fun latestSleepHours(client: HealthConnectClient): Double {
+        val end = Instant.now()
+        val start = end.minusSeconds(14L * 24L * 60L * 60L)
+        return client.readRecords(ReadRecordsRequest(SleepSessionRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end), ascendingOrder = false, pageSize = 1)).records.firstOrNull()?.let { java.time.Duration.between(it.startTime, it.endTime).seconds / 3600.0 } ?: 0.0
+    }
+
+    private suspend fun latestRestingHeartRate(client: HealthConnectClient): Long {
+        val end = Instant.now()
+        val start = end.minusSeconds(14L * 24L * 60L * 60L)
+        return client.readRecords(ReadRecordsRequest(RestingHeartRateRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end), ascendingOrder = false, pageSize = 1)).records.firstOrNull()?.beatsPerMinute ?: 0L
+    }
+
+    private suspend fun latestHrvRmssd(client: HealthConnectClient): Double {
+        val end = Instant.now()
+        val start = end.minusSeconds(14L * 24L * 60L * 60L)
+        return client.readRecords(ReadRecordsRequest(HeartRateVariabilityRmssdRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end), ascendingOrder = false, pageSize = 1)).records.firstOrNull()?.heartRateVariabilityMillis ?: 0.0
     }
 
     private fun healthConnectClient() = HealthConnectClient.getOrCreate(context)
