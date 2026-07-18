@@ -29,6 +29,7 @@ const excludedDirs = new Set([
   'dist',
   'node_modules',
   'scripts',
+  'src',
   'tests'
 ]);
 const requiredFiles = ['index.html', 'script.js', 'styles.css'];

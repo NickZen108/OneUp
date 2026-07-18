@@ -2,7 +2,8 @@
   "scripts": {
     "test": "node tests/script.test.js",
     "build": "node scripts/build.js",
-    "cap:sync": "npm run build && cap sync android"
+    "cap:sync": "npm run build && cap sync android",
+    "check:generated": "node scripts/check-generated.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",

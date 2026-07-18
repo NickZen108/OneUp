@@ -409,9 +409,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.15.0');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.15.1');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 17.21'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 17.40'));
 }
 
 {
@@ -782,4 +782,40 @@ function load(storage = new Map()) {
   t.recalc();
   assert.equal(t.state.retention.xp.total, xpAfterFirst);
   assert.equal(t.state.retention.streak.current, 1);
+}
+
+{
+  const retention = { version: 1, xp: { total: 420, grants: { 'old-entry': { amount: 40, at: '2026-07-13T09:00:00.000Z' } } }, goals: {}, streak: { current: 9, best: 9, lastChecked: '2026-07-12', rescues: {}, message: 'bevaret' }, weekly: { '2026-W28': { activeDays: { '2026-07-12': true }, goals: 1, unlocked: true } }, missions: { '2026-07-13': { id: 'm1', completedAt: '2026-07-13T09:00:00.000Z' } }, opened: {} };
+  const analytics = [{ type: 'retention-check', at: '2026-07-13T12:00:00.000Z' }];
+  const healthConnect = { connected: true, status: 'Forbundet', lastSyncedAt: '2026-07-13T10:00:00.000Z', values: { steps: 1234 }, permissions: { steps: true } };
+  const storage = new Map([
+    ['oneupRetentionV1', JSON.stringify(retention)],
+    ['oneupAnalyticsEventsV1', JSON.stringify(analytics)],
+    ['oneupHealthConnectV1', JSON.stringify(healthConnect)],
+    ['oneupPersonalGoalsV1', JSON.stringify({ steps: { enabled: true, target: 9000, direction: 'minimum', front: true } })],
+    ['oneupCompetitionsV1', JSON.stringify([{ id: 'legacy-comp', type: 'versus', name: 'Legacy', activities: ['dailyStepTarget'], participants: [], leaders: ['you'], status: 'active' }])]
+  ]);
+  const { context } = load(storage);
+  const state = context.window.__oneUpTest.state;
+  assert.equal(state.retention.xp.total, 420);
+  assert.equal(state.retention.xp.grants['old-entry'].amount, 40);
+  assert.equal(state.retention.streak.current >= 9, true);
+  assert.ok(storage.get('oneupAnalyticsEventsV1').includes('retention-check'));
+  assert.equal(state.healthConnect.lastSyncedAt, '2026-07-13T10:00:00.000Z');
+  assert.equal(state.healthConnect.values.steps, 1234);
+  assert.equal(state.personalGoals.steps.target, 9000);
+  assert.equal(state.competitions[0].id, 'legacy-comp');
+}
+
+{
+  const storage = new Map([
+    ['oneupActivityLogV2', '{not valid json'],
+    ['oneupRetentionV1', '{not valid json'],
+    ['oneupHealthConnectV1', '{not valid json']
+  ]);
+  const { context } = load(storage);
+  const state = context.window.__oneUpTest.state;
+  assert.ok(Array.isArray(state.log));
+  assert.ok(state.retention);
+  assert.ok(state.healthConnect);
 }

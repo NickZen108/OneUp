@@ -58,6 +58,9 @@ jobs:
       - name: Sync Capacitor Android project
         run: npx cap sync android
 
+      - name: Verify generated Android web assets
+        run: npm run check:generated
+
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
