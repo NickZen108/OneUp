@@ -400,9 +400,21 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.3');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.4');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 00.00'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 21.40'));
+}
+
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  assert.equal(source.includes('home-card-drag-handle'), false);
+  assert.equal(source.includes('data-home-drag-handle'), false);
+  assert.ok(source.includes('aria-label="Åbn menu til flytning af kort"'));
+  assert.ok(source.includes("closeHomeCardMenu(); if(b.dataset.homeMove==='reset')"));
+  assert.ok(source.includes("if(openHomeCardMenu){ closeHomeCardMenu(true); return; }"));
+  assert.ok(source.includes("openHomeCardMenu===menu ? closeHomeCardMenu()"));
+  assert.ok(source.includes('handleHomeCardOutsidePointer'));
 }
 
 {
