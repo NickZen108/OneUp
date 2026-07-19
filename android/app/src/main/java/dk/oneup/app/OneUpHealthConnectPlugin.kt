@@ -1,6 +1,7 @@
 package dk.oneup.app
 
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
@@ -53,13 +54,15 @@ class OneUpHealthConnectPlugin : Plugin() {
             val call = permissionCall ?: return@registerForActivityResult
             permissionCall = null
             val requested = requestedTypes(call)
-            val grantedTypes = requested.filter { granted.contains(permissionByType.getValue(it)) }.toSet()
-            val allGranted = grantedTypes.containsAll(requested)
+            val supported = requested.filter { permissionByType.containsKey(it) }
+            val unsupported = requested.filterNot { supported.contains(it) }
+            val grantedTypes = supported.filter { granted.contains(permissionByType.getValue(it)) }.toSet()
+            val allGranted = grantedTypes.containsAll(supported)
             call.resolve(statusObject(
                 available = isAvailable(),
                 granted = allGranted,
                 message = if (allGranted) "OneUp har adgang til de valgte Health Connect-data." else "OneUp fik ikke alle valgte tilladelser. Du kan give adgang senere i Health Connect."
-            ).put("grantedTypes", grantedTypes.toJsArray()).put("missingTypes", requested.filterNot { grantedTypes.contains(it) }.toJsArray()))
+            ).put("grantedTypes", grantedTypes.toJsArray()).put("missingTypes", supported.filterNot { grantedTypes.contains(it) }.toJsArray()).put("supportedTypes", supported.toJsArray()).put("unsupportedTypes", unsupported.toJsArray()))
         }
     }
 
@@ -73,10 +76,12 @@ class OneUpHealthConnectPlugin : Plugin() {
             runCatching { healthConnectClient().permissionController.getGrantedPermissions() }
                 .onSuccess { granted ->
                     val requested = requestedTypes(call)
-                    val grantedTypes = requested.filter { granted.contains(permissionByType.getValue(it)) }.toSet()
-                    val missingTypes = requested.filterNot { grantedTypes.contains(it) }
+                    val supported = requested.filter { permissionByType.containsKey(it) }
+                    val unsupported = requested.filterNot { supported.contains(it) }
+                    val grantedTypes = supported.filter { granted.contains(permissionByType.getValue(it)) }.toSet()
+                    val missingTypes = supported.filterNot { grantedTypes.contains(it) }
                     resolveOnMain(call, statusObject(true, missingTypes.isEmpty(), if (missingTypes.isEmpty()) "OneUp har adgang til de valgte Health Connect-data." else "Tilladelse mangler for: ${missingTypes.joinToString()}.")
-                        .put("grantedTypes", grantedTypes.toJsArray()).put("missingTypes", missingTypes.toJsArray()))
+                        .put("grantedTypes", grantedTypes.toJsArray()).put("missingTypes", missingTypes.toJsArray()).put("supportedTypes", supported.toJsArray()).put("unsupportedTypes", unsupported.toJsArray()))
                 }
                 .onFailure { rejectOnMain(call, "Health Connect-status kunne ikke hentes: ${it.localizedMessage ?: it.javaClass.simpleName}") }
         }
@@ -90,11 +95,13 @@ class OneUpHealthConnectPlugin : Plugin() {
         }
         pluginScope.launch {
             val requested = requestedTypes(call)
+            val supported = requested.filter { permissionByType.containsKey(it) }
+            val unsupported = requested.filterNot { supported.contains(it) }
             val granted = runCatching { healthConnectClient().permissionController.getGrantedPermissions() }.getOrDefault(emptySet())
-            val missing = requested.filterNot { granted.contains(permissionByType.getValue(it)) }.toSet()
+            val missing = supported.filterNot { granted.contains(permissionByType.getValue(it)) }.toSet()
             withContext(Dispatchers.Main) {
                 if (missing.isEmpty()) {
-                    call.resolve(statusObject(true, true, "OneUp har adgang til de valgte Health Connect-data.").put("grantedTypes", requested.toJsArray()).put("missingTypes", emptyList<String>().toJsArray()))
+                    call.resolve(statusObject(true, true, "OneUp har adgang til de valgte Health Connect-data.").put("grantedTypes", supported.toJsArray()).put("missingTypes", emptyList<String>().toJsArray()).put("supportedTypes", supported.toJsArray()).put("unsupportedTypes", unsupported.toJsArray()))
                 } else {
                     permissionCall = call
                     permissionLauncher.launch(missing.map { permissionByType.getValue(it) }.toSet())
@@ -181,6 +188,16 @@ class OneUpHealthConnectPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun openHealthConnectInstall(call: PluginCall) {
+        runCatching {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.apps.healthdata"))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }.onSuccess { call.resolve(JSObject().put("opened", true)) }
+            .onFailure { call.reject("Health Connect-installation kunne ikke åbnes.") }
+    }
+
+    @PluginMethod
     fun openHealthConnectSettings(call: PluginCall) {
         runCatching {
             val intent = Intent("android.health.connect.action.MANAGE_HEALTH_PERMISSIONS").putExtra(Intent.EXTRA_PACKAGE_NAME, context.packageName)
@@ -213,7 +230,7 @@ class OneUpHealthConnectPlugin : Plugin() {
     private fun unavailableMessage() = "Health Connect er ikke installeret eller tilgængelig på denne Android-enhed."
     private fun requestedTypes(call: PluginCall): List<String> {
         val values = call.getArray("dataTypes")?.toList<String>() ?: listOf("steps")
-        return values.mapNotNull { type -> permissionByType.keys.firstOrNull { it == type } }.ifEmpty { listOf("steps") }
+        return values.mapNotNull { type -> permissionByType.keys.firstOrNull { it == type } }.distinct().ifEmpty { listOf("steps") }
     }
     private fun Iterable<String>.toJsArray() = com.getcapacitor.JSArray().also { array -> forEach { array.put(it) } }
     private fun statusObject(available: Boolean, granted: Boolean, message: String) = JSObject().put("available", available).put("granted", granted).put("message", message)
