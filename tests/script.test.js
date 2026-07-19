@@ -400,9 +400,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.5');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.6');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 22.01'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 22.22'));
 }
 
 {
@@ -412,7 +412,7 @@ function load(storage = new Map()) {
   assert.ok(html.includes('<h2 id="activities-title">Aktiviteter</h2>'));
   assert.ok(html.includes('data-page="connections"'));
   assert.ok(source.includes("showPage('connections')"));
-  assert.ok(source.includes('Health Connect kan kun forbindes i OneUp-appen til Android'));
+  assert.ok(source.includes('Health Connect kræver Android-appen'));
   assert.ok(source.includes('Forbind Health Connect'));
   assert.ok(source.includes('Administrér tilladelser'));
 }
@@ -1141,4 +1141,19 @@ function load(storage = new Map()) {
   t.renderToday();
   assert.equal(map['#personal-goal-list'].innerHTML.includes('Skridt'), false);
   assert.equal(t.heroScore('daily','2026-07-13').total, 0);
+}
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  assert.ok(source.includes("const HEALTH_CONNECT_CORE_TYPES = ['steps','distance','exerciseDuration','activeCalories','floorsClimbed']"));
+  assert.equal(source.includes('getWritePermission'), false);
+  assert.ok(source.includes('Giv manglende tilladelser'));
+  assert.ok(source.includes('await refreshHealthConnectStatus();'));
+  assert.ok(source.includes('await syncHealthConnect({silent:true'));
+  assert.ok(source.includes('Åbn Health Connect-indstillinger'));
+  assert.ok(source.includes('unsupportedTypes'));
+  assert.ok(source.includes('Tilladelse givet, men ingen data fundet endnu.'));
+  assert.ok(source.includes('Health Connect kræver Android-appen'));
+  assert.equal(source.includes('Download Android-appen'), false);
+  assert.ok(source.includes('showHealthConnectIntro'));
 }
