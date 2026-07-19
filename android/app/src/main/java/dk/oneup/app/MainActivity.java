@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(OneUpHealthConnectPlugin.class);
         registerPlugin(OneUpScreenTimePlugin.class);
+        registerPlugin(OneUpNotificationsPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
