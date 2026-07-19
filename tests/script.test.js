@@ -4,7 +4,7 @@ const vm = require('node:vm');
 
 function el() { return { textContent:'', innerHTML:'', value:'', checked:false, hidden:false, options:[], classList:{toggle(){},add(){},remove(){}}, style:{}, dataset:{}, add(){ this.options.push(...arguments); }, addEventListener(){}, set onclick(v){this._onclick=v}, get onclick(){return this._onclick}, set onchange(v){this._onchange=v}, get onchange(){return this._onchange}, set onsubmit(v){this._onsubmit=v}, get onsubmit(){return this._onsubmit} }; }
 function load(storage = new Map()) {
-  const ids = ['oneup-score','today-points','goals-met','today-streak','encouragement','today-goal-summary','personal-goal-list','show-all-personal-goals','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self','start-breathing','stop-breathing','breathing-label'];
+  const ids = ['oneup-score','today-points','goals-met','today-streak','encouragement','today-goal-summary','personal-goal-list','show-all-personal-goals','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self'];
   const map = Object.fromEntries(ids.map(id => [`#${id}`, el()]));
   map['#development-filter'].value = 'all';
   const context = {
@@ -239,8 +239,8 @@ function load(storage = new Map()) {
   assert.equal(html.includes('Meditation'), false);
   assert.equal(html.includes('Skridt'), false);
   assert.equal(html.includes('Søvn'), false);
-  assert.equal(html, '0 af 1');
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  assert.equal(html, '');
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
 }
 
 {
@@ -274,16 +274,14 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
-  t.state.activitySettings.breathing.enabled = true;
+  t.state.activitySettings.dailyStepTarget.enabled = true;
   t.state.healthConnect = { permissions:{ steps:true }, values:{ steps:6421 }, availability:{ steps:{dataAvailable:true} } };
   t.state.log.push({ id:'steps-now', date:'2026-07-13', activity:'dailyStepTarget', value:6421 });
-  t.state.log.push({ id:'breathing-now', date:'2026-07-13', activity:'breathing', value:2 });
   t.renderToday();
   const html = map['#personal-goal-list'].innerHTML;
   assert.ok(html.includes('Skridt'));
   assert.ok(html.includes('6.421'));
-  assert.ok(html.includes('Åndedrætsøvelser'));
-  assert.ok(html.includes('2'));
+  assert.ok(!html.includes('Åndedrætsøvelser'));
   assert.equal(html.includes('progressbar'), false);
   assert.equal(html.includes('Health Connect ikke forbundet'), false);
 }
@@ -291,11 +289,11 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
-  const acts = ['dailyStepTarget','meditation','breathing','strength','running','cycling'];
+  const acts = ['dailyStepTarget','strength','running','cycling'];
   acts.forEach(activity => { if(t.state.activitySettings[activity]) t.state.activitySettings[activity].enabled = true; });
   acts.forEach((activity, i) => t.state.log.push({ id:`many-${activity}`, date:'2026-07-13', activity, value: activity==='bedtime'?22.15:i+1, hours: activity==='sleepDuration'?7.5:undefined }));
   t.renderToday();
-  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 1);
+  assert.equal((map['#personal-goal-list'].innerHTML.match(/personal-goal-row/g)||[]).length, 0);
   assert.equal(map['#show-all-personal-goals'].hidden, true);
 }
 
@@ -370,21 +368,12 @@ function load(storage = new Map()) {
 }
 
 {
-  const storage = new Map();
-  let loaded = load(storage);
-  loaded.context.window.__oneUpTest.setPersonalMetricEnabled('meditationMinutes', true);
-  loaded = load(storage);
-  const t = loaded.context.window.__oneUpTest;
-  assert.equal(t.state.personalGoals.meditationMinutes.enabled, true);
-  assert.equal(t.state.personalGoals.meditationMinutes.front, true);
-  assert.equal(t.state.activitySettings.meditation.enabled, true);
-}
-
-{
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 33);
+  assert.equal(t.competitionActivityIds().length, 31);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
+  assert.equal(t.competitionActivityIds().includes('breathing'), false);
+  assert.equal(t.competitionActivityIds().includes('meditation'), false);
   assert.equal(t.competitionActivityIds().includes('sleepDuration'), true);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
   assert.equal(t.competitionActivityIds().includes('wakeTime'), false);
@@ -417,35 +406,6 @@ function load(storage = new Map()) {
   assert.ok(source.includes('class="stepper-display"'));
   assert.ok(source.includes('data-stepper-number="${id}"'));
   assert.ok(source.includes('editor.querySelectorAll(`[data-stepper-number="${id}"]`)'));
-}
-
-{
-  const { context } = load();
-  const t = context.window.__oneUpTest;
-  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
-  t.state.activitySettings.meditation.enabled = true;
-  t.state.activitySettings.dailyStepTarget.enabled = true;
-  t.state.activitySettings.meditation.goalPeriod = 'daily';
-  t.state.activitySettings.meditation.targetCount = 2;
-  t.state.activitySettings.meditation.goal = 2;
-  t.state.log.push({ id:'m1', date:'2026-07-13', activity:'meditation', value:1 });
-  t.state.log.push({ id:'s1', date:'2026-07-13', activity:'dailyStepTarget', value:6000 });
-  assert.equal(t.heroScore('daily','2026-07-13').percent, 50);
-  t.state.log.push({ id:'m2', date:'2026-07-13', activity:'meditation', value:5 });
-  assert.equal(t.heroGoalItems('daily','2026-07-13').find(i=>i.id==='meditation').percent, 100);
-}
-
-{
-  const { context } = load();
-  const t = context.window.__oneUpTest;
-  Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
-  t.state.activitySettings.breathing.enabled = true;
-  t.state.activitySettings.breathing.goalPeriod = 'weekly';
-  t.state.activitySettings.breathing.targetCount = 4;
-  ['2026-07-13','2026-07-14','2026-07-15'].forEach((d,i)=>t.state.log.push({ id:`b${i}`, date:d, activity:'breathing', value:1, mode:'box' }));
-  const item = t.heroGoalItems('weekly','2026-07-15').find(i=>i.id==='breathing');
-  assert.equal(item.percent, 75);
-  assert.equal(item.label.includes('3/4'), true);
 }
 
 {
@@ -492,8 +452,6 @@ function load(storage = new Map()) {
   const t = context.window.__oneUpTest;
   const defaults = {
     strength: 1,
-    breathing: 1,
-    meditation: 10,
     screenFreeBeforeBed: 30,
     socialMediaFree: 60,
     running: 5,
@@ -537,10 +495,6 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  const migrated = t.normalizeGoalConfig('breathing', { activityId:'breathing', metric:'rounds', unit:'runder', target:26 });
-  assert.equal(migrated.target, 3);
-  assert.equal(migrated.period, 'daily');
-  assert.ok(t.goalSummary({ activityId:'breathing', target:2 }).includes('20 runder pr. dag'));
   assert.equal(t.scoreMoreIsBetter(1,2,null), 50);
   assert.equal(t.scoreMoreIsBetter(2.4,2,null), 100);
 }
@@ -678,14 +632,6 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  for(let i=0;i<7;i++) t.state.log.push({id:`m${i}`,date:t.day(i,'2026-07-01'),activity:'meditation',value:1});
-  t.recalc();
-  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='meditation-7')).met, true);
-}
-
-{
-  const { context } = load();
-  const t = context.window.__oneUpTest;
   for(let i=0;i<7;i++) t.state.log.push({id:`s${i}`,date:t.day(i,'2026-07-01'),activity:'dailyStepTarget',value:10000});
   for(let i=0;i<30;i++) t.state.log.push({id:`s15${i}`,date:t.day(i,'2026-06-01'),activity:'dailyStepTarget',value:15000});
   t.recalc();
@@ -707,29 +653,9 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  for(let i=0;i<7;i++){ const d=t.day(i,'2026-07-01'); t.state.log.push({id:`m${i}`,date:d,activity:'meditation',value:1},{id:`b${i}`,date:d,activity:'breathing',value:1}); }
-  t.recalc();
-  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='mindful-breath-7')).met, true);
-}
-
-{
-  const { context } = load();
-  const t = context.window.__oneUpTest;
   for(let w=0;w<4;w++) for(let i=0;i<3;i++) t.state.log.push({id:`str${w}-${i}`,date:t.day(w*7+i,'2026-06-01'),activity:'strength',value:1});
   t.recalc();
   assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='strength-3x-4w')).met, true);
-}
-
-{
-  const { context } = load();
-  const t = context.window.__oneUpTest;
-  for(let i=0;i<7;i++) t.state.log.push({id:`m${i}`,date:t.day(i,'2026-07-01'),activity:'meditation',value:1});
-  t.recalc();
-  const first=t.evaluateTrophies({retroactive:true}).length;
-  const second=t.evaluateTrophies({retroactive:true}).length;
-  assert.equal(first >= 1, true);
-  assert.equal(second, 0);
-  assert.ok(t.state.trophies.earned['meditation-7']);
 }
 
 {
@@ -871,13 +797,13 @@ function load(storage = new Map()) {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
   Object.keys(t.state.activitySettings).forEach(id => { t.state.activitySettings[id].enabled = false; });
-  assert.equal(t.activityCanToggle('breathing'), true);
+  assert.equal(t.activityCanToggle('breathing'), false);
   t.setPersonalMetricEnabled('breathingActivities', true);
-  assert.equal(t.state.activitySettings.breathing.enabled, true); // available can be toggled on
+  assert.equal(t.state.activitySettings.breathing.enabled, false);
   t.renderToday();
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
   t.setPersonalMetricEnabled('breathingActivities', false);
-  assert.equal(t.state.activitySettings.breathing.enabled, false); // available can be toggled off
+  assert.equal(t.state.activitySettings.breathing.enabled, false)
   assert.equal(t.state.log.length, 0); // history is not deleted by disabling
 }
 
@@ -887,7 +813,7 @@ function load(storage = new Map()) {
   t.state.log.push({ id:'b', date:'2026-07-13', activity:'breathing', value:1 });
   t.setPersonalMetricEnabled('breathingActivities', true);
   t.renderToday();
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
   t.setPersonalMetricEnabled('breathingActivities', false);
   t.renderToday();
   assert.ok(!map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
@@ -923,7 +849,7 @@ function load(storage = new Map()) {
     ['oneupPersonalGoalsV1', JSON.stringify({ breathingActivities:{ enabled:true, front:true }, totalScreenTime:{ enabled:true, front:true } })]
   ]));
   const t = context.window.__oneUpTest;
-  assert.equal(t.state.activitySettings.breathing.enabled, true);
+  assert.equal(t.state.activitySettings.breathing.enabled, false);
   assert.equal(t.state.activitySettings.totalScreenTime.enabled, false);
   assert.equal(t.state.personalGoals.totalScreenTime.enabled, false);
   t.renderToday();
@@ -1166,7 +1092,7 @@ function load(storage = new Map()) {
   t.state.personalGoals.breathingActivities = { enabled:true, front:true, target:1, direction:'minimum' };
   t.state.healthConnect = { connected:false, permissions:{}, values:{}, availability:{} };
   t.renderToday();
-  assert.ok(map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
+  assert.ok(!map['#personal-goal-list'].innerHTML.includes('Åndedrætsøvelser'));
 }
 
 {
