@@ -400,9 +400,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.6');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.7');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 22.22'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 22.37'));
 }
 
 {
@@ -1156,4 +1156,49 @@ function load(storage = new Map()) {
   assert.ok(source.includes('Health Connect kræver Android-appen'));
   assert.equal(source.includes('Download Android-appen'), false);
   assert.ok(source.includes('showHealthConnectIntro'));
+}
+
+{
+  const { context, storage } = load();
+  const t = context.window.__oneUpTest;
+  assert.equal(t.canShowNotificationPrompt('first-competition'), false);
+  assert.ok(t.notificationSettingsHtml().includes('Tilgængelig i Android-appen'));
+  assert.equal(storage.get('oneupNotificationPreferencesV1').includes('dailyReminders'), true);
+}
+
+{
+  const source = fs.readFileSync('script.js','utf8');
+  const android = fs.readFileSync('android/app/src/main/java/dk/oneup/app/OneUpNotificationsPlugin.kt','utf8');
+  const manifest = fs.readFileSync('android/app/src/main/AndroidManifest.xml','utf8');
+  assert.ok(source.includes('Vil du holde dig opdateret?'));
+  assert.ok(source.includes('Få besked om invitationer, venners aktivitet og vigtige fremskridt'));
+  assert.ok(source.includes('maybePromptForNotifications(c.type'));
+  assert.ok(source.includes("healthConnectIntro"));
+  assert.ok(source.includes('requestNotificationPermissionFromUser'));
+  assert.ok(source.includes('openNotificationSettings'));
+  assert.ok(source.includes('permanentDenied'));
+  assert.ok(source.includes('shouldSendDailyReminder'));
+  assert.ok(source.includes('goalReached'));
+  assert.ok(source.includes('parseOneUpInviteUrl'));
+  assert.ok(source.includes('tokenHash'));
+  assert.equal(source.includes('console.log(res?.token'), false);
+  assert.ok(manifest.includes('android.permission.POST_NOTIFICATIONS'));
+  assert.ok(android.includes('Build.VERSION_CODES.TIRAMISU'));
+  assert.ok(android.includes('requestPermissionForAlias("notifications"'));
+  assert.ok(android.includes('ACTION_APP_NOTIFICATION_SETTINGS'));
+  assert.ok(android.includes('NotificationChannel("oneup_invitations"'));
+  assert.ok(android.includes('FCM-backend mangler'));
+}
+
+{
+  const { context } = load();
+  const t = context.window.__oneUpTest;
+  const prefs = t.normalizeNotificationPrefs({permission:'granted'});
+  assert.equal(prefs.preferences.invitations, true);
+  assert.equal(prefs.preferences.competitions, true);
+  assert.equal(prefs.preferences.progress, true);
+  assert.equal(prefs.preferences.dailyReminders, false);
+  t.state.notifications.preferences.dailyReminders = true; t.state.notifications.dailyReminder.enabled = true; t.state.notifications.dailyReminder.time = '18:00'; context.localStorage.setItem('oneupNotificationPreferencesV1', JSON.stringify(t.state.notifications));
+  assert.equal(t.shouldSendDailyReminder(new Date('2026-07-13T18:00:00'), false), true);
+  assert.equal(t.shouldSendDailyReminder(new Date('2026-07-13T18:00:00'), true), false);
 }
