@@ -289,7 +289,7 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   const t = context.window.__oneUpTest;
-  const acts = ['dailyStepTarget','strength','running','cycling'];
+  const acts = ['dailyStepTarget','running','cycling','walking'];
   acts.forEach(activity => { if(t.state.activitySettings[activity]) t.state.activitySettings[activity].enabled = true; });
   acts.forEach((activity, i) => t.state.log.push({ id:`many-${activity}`, date:'2026-07-13', activity, value: activity==='bedtime'?22.15:i+1, hours: activity==='sleepDuration'?7.5:undefined }));
   t.renderToday();
@@ -304,7 +304,6 @@ function load(storage = new Map()) {
   assert.equal(t.personalMetricDisplayValue('sleepDuration', {available:true, value:7.5}), '7,5 t');
   assert.equal(t.personalMetricDisplayValue('bedtime', {available:true, value:22.15}), '22.15');
   assert.equal(t.personalMetricDisplayValue('distance', {available:true, value:5.2}), '5,2 km');
-  assert.equal(t.personalMetricDisplayValue('strengthSets', {available:true, value:8}), '8 sæt');
   assert.equal(t.personalMetricDisplayValue('restingHeartRate', {available:true, value:58}), '58 bpm');
   assert.equal(t.personalMetricDisplayValue('heartRateVariability', {available:true, value:42}), '42 ms');
 }
@@ -370,10 +369,15 @@ function load(storage = new Map()) {
 {
   const { context } = load();
   const t = context.window.__oneUpTest;
-  assert.equal(t.competitionActivityIds().length, 31);
+  assert.equal(t.competitionActivityIds().length, 26);
   assert.equal(t.competitionActivityIds().includes('sleep'), false);
   assert.equal(t.competitionActivityIds().includes('breathing'), false);
   assert.equal(t.competitionActivityIds().includes('meditation'), false);
+  assert.equal(t.competitionActivityIds().includes('strength'), false);
+  assert.equal(t.competitionActivityIds().includes('swimming'), false);
+  assert.equal(t.competitionActivityIds().includes('yoga'), false);
+  assert.equal(t.competitionActivityIds().includes('mobility'), false);
+  assert.equal(t.competitionActivityIds().includes('workouts'), false);
   assert.equal(t.competitionActivityIds().includes('sleepDuration'), true);
   assert.ok(t.competitionActivityIds().includes('bedtime'));
   assert.equal(t.competitionActivityIds().includes('wakeTime'), false);
@@ -396,9 +400,9 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.2');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.3');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 18. juli 2026 kl. 22.58'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 00.00'));
 }
 
 {
@@ -650,13 +654,6 @@ function load(storage = new Map()) {
   assert.equal(Math.round(p.meta.reference), 70);
 }
 
-{
-  const { context } = load();
-  const t = context.window.__oneUpTest;
-  for(let w=0;w<4;w++) for(let i=0;i<3;i++) t.state.log.push({id:`str${w}-${i}`,date:t.day(w*7+i,'2026-06-01'),activity:'strength',value:1});
-  t.recalc();
-  assert.equal(t.trophyProgress(t.trophyDefinitions.find(x=>x.id==='strength-3x-4w')).met, true);
-}
 
 {
   const { context } = load();
