@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=1.16.4" />
+  <link rel="stylesheet" href="styles.css?v=1.16.5" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar app-version-top">
       <div>
-        <p id="app-version-label" class="eyebrow">Version: 1.16.4</p>
-        <p id="app-build-label" class="build-label">Opdateret: 19. juli 2026 kl. 21.40 · København nu: indlæser</p>
+        <p id="app-version-label" class="eyebrow">Version: 1.16.5</p>
+        <p id="app-build-label" class="build-label">Opdateret: 19. juli 2026 kl. 22.01 · København nu: indlæser</p>
       </div>
     </header>
 
@@ -31,9 +31,17 @@
     <section class="page" data-page="activities" aria-labelledby="activities-title">
       <button type="button" class="secondary page-back" data-main-nav="today">← Forside</button>
       <p class="eyebrow">Aktiviteter</p>
-      <h2 id="activities-title">Vælg, mål og registrér</h2>
+      <h2 id="activities-title">Aktiviteter</h2>
       <div id="activity-manager" class="card-list"></div>
       <article class="card"><h3>Registreringer i dag</h3><ul id="entry-list" class="plain-list"></ul></article>
+    </section>
+
+
+    <section class="page" data-page="connections" aria-labelledby="connections-title">
+      <button type="button" class="secondary page-back" data-page-back aria-label="Tilbage til aktiviteter">← Aktiviteter</button>
+      <p class="eyebrow">Forbindelser</p>
+      <h2 id="connections-title">Forbindelser</h2>
+      <div id="connections-manager" class="card-list"></div>
     </section>
 
     <section class="page" data-page="friends" aria-labelledby="friends-title">
@@ -69,6 +77,6 @@
     </section>
   </main>
   <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <script src="script.js?v=1.16.4"></script>
+  <script src="script.js?v=1.16.5"></script>
 </body>
 </html>

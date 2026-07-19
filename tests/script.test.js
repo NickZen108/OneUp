@@ -400,9 +400,21 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.4');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.5');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
-  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 21.40'));
+  assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 22.01'));
+}
+
+{
+  const html = fs.readFileSync('index.html','utf8');
+  const source = fs.readFileSync('script.js','utf8');
+  assert.equal(html.includes('Vælg, mål og registrér'), false);
+  assert.ok(html.includes('<h2 id="activities-title">Aktiviteter</h2>'));
+  assert.ok(html.includes('data-page="connections"'));
+  assert.ok(source.includes("showPage('connections')"));
+  assert.ok(source.includes('Health Connect kan kun forbindes i OneUp-appen til Android'));
+  assert.ok(source.includes('Forbind Health Connect'));
+  assert.ok(source.includes('Administrér tilladelser'));
 }
 
 
