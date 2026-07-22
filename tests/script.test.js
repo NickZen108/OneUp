@@ -18,6 +18,16 @@ function load(storage = new Map()) {
 }
 
 {
+  const { context } = load();
+  const deltas = context.homeCardFlipDeltas(
+    new Map([['status', 100], ['versus', 300], ['coop', 500]]),
+    new Map([['versus', 100], ['status', 320], ['coop', 500]])
+  );
+  assert.equal(JSON.stringify([...deltas]), JSON.stringify([['status', -220], ['versus', 200]]));
+  assert.equal(deltas.has('coop'), false);
+}
+
+{
   const storage = new Map([
     ['oneupPoints','123'],
     ['oneupVillageResidents','{"buster":{}}'],

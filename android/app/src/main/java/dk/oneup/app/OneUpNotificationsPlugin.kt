@@ -69,7 +69,8 @@ class OneUpNotificationsPlugin : Plugin() {
         ret.put("status", status)
         ret.put("permission", status)
         ret.put("androidVersion", Build.VERSION.SDK_INT)
-        ret.put("permanentDenied", Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && status != "granted" && !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS))
+        val canExplainDenial = activity?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) == true
+        ret.put("permanentDenied", Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && status != "granted" && !canExplainDenial)
         ret.put("notificationsEnabled", NotificationManagerCompat.from(context).areNotificationsEnabled())
         return ret
     }
