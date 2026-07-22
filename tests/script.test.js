@@ -28,6 +28,15 @@ function load(storage = new Map()) {
   assert.equal(JSON.stringify(context.homeCardMoveAvailability(['status','versus','coop'],'status')), JSON.stringify({up:false,down:true}));
   assert.equal(JSON.stringify(context.homeCardMoveAvailability(['status','versus','coop'],'versus')), JSON.stringify({up:true,down:true}));
   assert.equal(JSON.stringify(context.homeCardMoveAvailability(['status','versus','coop'],'coop')), JSON.stringify({up:true,down:false}));
+  let order = ['status','versus','coop','trophy'];
+  order = [...context.reorderedHomeCards(order,'versus',1)];
+  assert.equal(order.join(','), 'status,coop,versus,trophy');
+  order = [...context.reorderedHomeCards(order,'versus',-1)];
+  assert.equal(order.join(','), 'status,versus,coop,trophy');
+  order = [...context.reorderedHomeCards(order,'trophy',-1)];
+  assert.equal(order.join(','), 'status,versus,trophy,coop');
+  order = [...context.reorderedHomeCards(order,'trophy',1)];
+  assert.equal(order.join(','), 'status,versus,coop,trophy');
 }
 
 {
@@ -438,6 +447,8 @@ function load(storage = new Map()) {
   assert.ok(source.includes('aria-label="Åbn menu til flytning af kort"'));
   assert.ok(source.includes("const menu=b.closest('[data-home-menu]')"));
   assert.ok(source.includes("history?.state?.oneUpHomeCardMenu"));
+  assert.ok(source.includes('homeCardMenuIgnoreNextPop=true'));
+  assert.ok(source.includes('e.stopImmediatePropagation?.()'));
   assert.ok(source.includes("if(openHomeCardMenu){ closeHomeCardMenu(true); return; }"));
   assert.ok(source.includes("openHomeCardMenu===menu ? closeHomeCardMenu()"));
   assert.ok(source.includes('handleHomeCardOutsidePointer'));
