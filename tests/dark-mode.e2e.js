@@ -44,7 +44,7 @@ function luminance(rgb) {
     assert.ok(luminance(darkBody) < 0.08, `dark body is too bright: ${darkBody}`);
     assert.ok(luminance(darkCard) < 0.18, `dark card is too bright: ${darkCard}`);
 
-    await page.locator('[data-main-nav="profile"]').click();
+    await page.locator('.floating-top-nav [data-main-nav="profile"]').click();
     const selector = page.locator('[data-theme-setting]');
     assert.equal(await selector.inputValue(), 'dark');
     await selector.selectOption('light');
@@ -60,7 +60,7 @@ function luminance(rgb) {
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', 'saved dark mode must survive reload');
 
     await page.emulateMedia({ colorScheme:'dark' });
-    await page.locator('[data-main-nav="profile"]').click();
+    await page.locator('.floating-top-nav [data-main-nav="profile"]').click();
     await page.locator('[data-theme-setting]').selectOption('system');
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', 'system mode must follow a dark device');
     console.log('Dark mode browser test passed');
