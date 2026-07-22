@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test": "node tests/script.test.js",
-    "test:e2e": "npm run build && node tests/home-card-reorder.e2e.js",
+    "test:e2e": "npm run build && node tests/home-card-reorder.e2e.js && node tests/dark-mode.e2e.js",
     "build": "node scripts/build.js",
     "cap:sync": "npm run build && cap sync android",
     "check:generated": "node scripts/check-generated.js"
