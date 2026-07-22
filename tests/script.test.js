@@ -2,6 +2,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
+{
+  const source = fs.readFileSync('script.js','utf8');
+  const css = fs.readFileSync('styles.css','utf8');
+  assert.ok(source.includes("theme:'system'"), 'theme preference must default to the device setting');
+  assert.ok(source.includes("applyTheme(state.settings.theme)"), 'theme changes must preview immediately');
+  assert.ok(css.includes('html[data-theme="dark"]'), 'dark color tokens must exist');
+  assert.ok(source.includes('data-theme-setting'), 'profile settings must expose the theme selector');
+}
+
 function el() { return { textContent:'', innerHTML:'', value:'', checked:false, hidden:false, options:[], classList:{toggle(){},add(){},remove(){}}, style:{}, dataset:{}, add(){ this.options.push(...arguments); }, addEventListener(){}, set onclick(v){this._onclick=v}, get onclick(){return this._onclick}, set onchange(v){this._onchange=v}, get onchange(){return this._onchange}, set onsubmit(v){this._onsubmit=v}, get onsubmit(){return this._onsubmit} }; }
 function load(storage = new Map()) {
   const ids = ['oneup-score','today-points','goals-met','today-streak','encouragement','today-goal-summary','personal-goal-list','show-all-personal-goals','app-version-label','app-build-label','activity-manager','entry-list','competition-type','leaderboard','self-summary','self-ranking','development-filter','bars-7','bars-4','weekly-summary','profile-form','settings-form','create-group','group-message','competition-others','competition-self'];
@@ -444,7 +453,7 @@ function load(storage = new Map()) {
 {
   const { context, map } = load();
   context.window.__oneUpTest.renderVersion();
-  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.7');
+  assert.equal(map['#app-version-label'].textContent, 'Version: 1.16.8');
   assert.ok(map['#app-build-label'].textContent.includes('København nu:'));
   assert.ok(map['#app-build-label'].textContent.includes('Opdateret: 19. juli 2026 kl. 22.37'));
 }

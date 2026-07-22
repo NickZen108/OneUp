@@ -4,13 +4,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OneUp – sundhed, vaner og mål</title>
-  <link rel="stylesheet" href="styles.css?v=1.16.7" />
+  <script>
+    try {
+      const savedTheme = JSON.parse(localStorage.getItem('oneupSettings') || '{}').theme || 'system';
+      const dark = savedTheme === 'dark' || (savedTheme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    } catch (_) { document.documentElement.dataset.theme = 'light'; }
+  </script>
+  <link rel="stylesheet" href="styles.css?v=1.16.8" />
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar app-version-top">
       <div>
-        <p id="app-version-label" class="eyebrow">Version: 1.16.7</p>
+        <p id="app-version-label" class="eyebrow">Version: 1.16.8</p>
         <p id="app-build-label" class="build-label">Opdateret: 19. juli 2026 kl. 22.37 · København nu: indlæser</p>
       </div>
     </header>
@@ -77,6 +84,6 @@
     </section>
   </main>
   <div id="app-toast" class="app-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <script src="script.js?v=1.16.7"></script>
+  <script src="script.js?v=1.16.8"></script>
 </body>
 </html>
