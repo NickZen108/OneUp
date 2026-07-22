@@ -32,8 +32,11 @@ async function move(page, id, direction) {
   await card.locator('.home-card-menu-button').click();
   const item = card.locator(`[data-home-move="${direction}"]`);
   assert.equal(await item.isEnabled(), true, `${id} should be able to move ${direction}`);
+  const scrollBefore = await page.evaluate(() => window.scrollY);
   await item.click();
-  await page.waitForTimeout(650);
+  const scrollAfter = await page.evaluate(() => window.scrollY);
+  assert.equal(scrollAfter, scrollBefore, `${id} must not jump the viewport while moving ${direction}`);
+  await page.waitForTimeout(750);
 }
 
 async function reset(page) {
@@ -56,21 +59,63 @@ async function reset(page) {
     const defaults = ['status','versus','coop','trophy'];
     assert.deepEqual(await cardOrder(page), defaults);
 
+    await page.evaluate(() => {
+      window.__homeCardAnimations = [];
+      const originalAnimate = Element.prototype.animate;
+      Element.prototype.animate = function(keyframes, options) {
+        if (this.matches?.('[data-home-card-id]')) {
+          window.__homeCardAnimations.push({id:this.dataset.homeCardId,keyframes,options});
+        }
+        return originalAnimate.call(this, keyframes, options);
+      };
+    });
+
     for (const id of defaults) {
       await reset(page);
       let order = [...defaults];
       while (order.indexOf(id) < order.length - 1) {
+        await page.evaluate(() => { window.__homeCardAnimations = []; });
         const index = order.indexOf(id);
         [order[index], order[index + 1]] = [order[index + 1], order[index]];
         await move(page, id, 'down');
         assert.deepEqual(await cardOrder(page), order, `${id} failed while moving down`);
+        const animations = await page.evaluate(() => window.__homeCardAnimations);
+        const moved = animations.find(animation => animation.id === id);
+        assert.ok(moved, `${id} must animate while moving down`);
+        assert.match(moved.keyframes[0].transform, /translate3d\(0, -/, `${id} must start above its new position when moving down`);
+        assert.equal(moved.keyframes[1].transform, 'translate3d(0, 0, 0)');
+        assert.equal(moved.options.duration, 600);
       }
       while (order.indexOf(id) > 0) {
+        await page.evaluate(() => { window.__homeCardAnimations = []; });
         const index = order.indexOf(id);
         [order[index], order[index - 1]] = [order[index - 1], order[index]];
         await move(page, id, 'up');
         assert.deepEqual(await cardOrder(page), order, `${id} failed while moving up`);
+        const animations = await page.evaluate(() => window.__homeCardAnimations);
+        const moved = animations.find(animation => animation.id === id);
+        assert.ok(moved, `${id} must animate while moving up`);
+        assert.doesNotMatch(moved.keyframes[0].transform, /translate3d\(0, -/, `${id} must start below its new position when moving up`);
+        assert.equal(moved.options.duration, 600);
       }
+
+      // Every card, including the initially bottom-most trophy card, must also
+      // complete a fresh down/up roundtrip from the top without a visual jump.
+      await page.evaluate(() => { window.__homeCardAnimations = []; });
+      [order[0], order[1]] = [order[1], order[0]];
+      await move(page, id, 'down');
+      assert.deepEqual(await cardOrder(page), order, `${id} failed its final down check`);
+      let animations = await page.evaluate(() => window.__homeCardAnimations);
+      let moved = animations.find(animation => animation.id === id);
+      assert.match(moved.keyframes[0].transform, /translate3d\(0, -/, `${id} jumped before its final down animation`);
+
+      await page.evaluate(() => { window.__homeCardAnimations = []; });
+      [order[0], order[1]] = [order[1], order[0]];
+      await move(page, id, 'up');
+      assert.deepEqual(await cardOrder(page), order, `${id} failed its final up check`);
+      animations = await page.evaluate(() => window.__homeCardAnimations);
+      moved = animations.find(animation => animation.id === id);
+      assert.doesNotMatch(moved.keyframes[0].transform, /translate3d\(0, -/, `${id} jumped before its final up animation`);
     }
 
     await reset(page);

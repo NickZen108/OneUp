@@ -55,6 +55,10 @@ function load(storage = new Map()) {
   assert.equal(classes.has('home-card-moving'), false, 'safety timeout must unlock cards when animation.finished never settles');
   assert.equal(classes.has('home-card-moving-active'), false);
   assert.equal(fs.readFileSync('styles.css','utf8').includes('will-change:transform;pointer-events:none'), false, 'moving cards must remain tappable');
+  assert.ok(fs.readFileSync('styles.css','utf8').includes('.page[data-page="today"]{overflow-anchor:none}'), 'home page must disable scroll anchoring while cards reorder');
+  const source = fs.readFileSync('script.js','utf8');
+  assert.ok(source.indexOf('b.blur?.(); closeHomeCardMenu();') < source.indexOf("if(action==='reset')"), 'menu focus must be cleared before the DOM is reordered');
+  assert.ok(source.includes('const duration=id===movedId?600:520'), 'all card animations must use the slower durations');
 }
 
 {
