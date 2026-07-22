@@ -25,6 +25,9 @@ function load(storage = new Map()) {
   );
   assert.equal(JSON.stringify([...deltas]), JSON.stringify([['status', -220], ['versus', 200]]));
   assert.equal(deltas.has('coop'), false);
+  assert.equal(JSON.stringify(context.homeCardMoveAvailability(['status','versus','coop'],'status')), JSON.stringify({up:false,down:true}));
+  assert.equal(JSON.stringify(context.homeCardMoveAvailability(['status','versus','coop'],'versus')), JSON.stringify({up:true,down:true}));
+  assert.equal(JSON.stringify(context.homeCardMoveAvailability(['status','versus','coop'],'coop')), JSON.stringify({up:true,down:false}));
 }
 
 {
@@ -433,7 +436,8 @@ function load(storage = new Map()) {
   assert.equal(source.includes('home-card-drag-handle'), false);
   assert.equal(source.includes('data-home-drag-handle'), false);
   assert.ok(source.includes('aria-label="Åbn menu til flytning af kort"'));
-  assert.ok(source.includes("closeHomeCardMenu(); if(b.dataset.homeMove==='reset')"));
+  assert.ok(source.includes("const menu=b.closest('[data-home-menu]')"));
+  assert.ok(source.includes("history?.state?.oneUpHomeCardMenu"));
   assert.ok(source.includes("if(openHomeCardMenu){ closeHomeCardMenu(true); return; }"));
   assert.ok(source.includes("openHomeCardMenu===menu ? closeHomeCardMenu()"));
   assert.ok(source.includes('handleHomeCardOutsidePointer'));
