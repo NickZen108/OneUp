@@ -40,6 +40,24 @@ function load(storage = new Map()) {
 }
 
 {
+  const { context, map } = load();
+  const classes = new Set();
+  const card = {
+    dataset:{homeCardId:'versus'},
+    classList:{add(...names){ names.forEach(name=>classes.add(name)); },remove(...names){ names.forEach(name=>classes.delete(name)); }},
+    style:{removeProperty(){}},
+    getBoundingClientRect(){ return {top:300}; },
+    animate(){ return {finished:new Promise(()=>{}),addEventListener(){}}; }
+  };
+  map['[data-page="today"]'] = {querySelectorAll(){ return [card]; }};
+  context.window.matchMedia = () => ({matches:false});
+  context.animateHomeCardReorder(new Map([['versus',100]]),'versus');
+  assert.equal(classes.has('home-card-moving'), false, 'safety timeout must unlock cards when animation.finished never settles');
+  assert.equal(classes.has('home-card-moving-active'), false);
+  assert.equal(fs.readFileSync('styles.css','utf8').includes('will-change:transform;pointer-events:none'), false, 'moving cards must remain tappable');
+}
+
+{
   const storage = new Map([
     ['oneupPoints','123'],
     ['oneupVillageResidents','{"buster":{}}'],
