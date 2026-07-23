@@ -1121,6 +1121,15 @@ function load(storage = new Map()) {
   assert.equal(map['#personal-goal-list'].innerHTML.includes('Skridt'), false);
   assert.ok(map['#personal-goal-list'].innerHTML.includes('Dine valgte aktiviteter kan endnu ikke måles.'));
   assert.ok(map['#personal-goal-list'].innerHTML.includes('Kontrollér forbindelser'));
+  assert.equal((map['#personal-goal-list'].innerHTML.match(/data-open-connections/g) || []).length, 1);
+  const card = t.heroScoreCard();
+  assert.ok(card.includes('Din OneUp'));
+  assert.ok(card.includes('Se historik'));
+  assert.ok(card.includes('Uger og måneder'));
+  assert.equal(card.includes('Hero Score'), false);
+  assert.equal(card.includes('Personlig status'), false);
+  assert.equal(card.includes('Tryk for historik'), false);
+  assert.equal(card.includes('data-open-connections'), false);
 }
 
 {
